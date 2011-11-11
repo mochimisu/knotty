@@ -2,6 +2,7 @@
 CS285 Project - Brandon Wang, Andrew Lee
 
 ## Requirements
+* Python 2.x
 * PyOpenGL:
 `easy_install PyOpenGL PyOpenGL-accelerate`
 
