@@ -5,6 +5,8 @@ CS285 Project - Brandon Wang, Andrew Lee
 * Python 2.x
 * PyOpenGL:
 `easy_install PyOpenGL PyOpenGL-accelerate`
+* NumPy:
+`easy_install numpy`
 
 ## Current Status
 ###Done

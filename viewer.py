@@ -8,7 +8,6 @@
 from OpenGL.GL import * 
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
-from math import *
 from numpy import *
 from numpy.linalg import *
 import sys
