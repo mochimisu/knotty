@@ -3,4 +3,4 @@ CS285 Project - Brandon Wang, Andrew Lee
 
 ## Requirements
 * PyOpenGL:
-    easy_install PyOpenGL PyOpenGL-accelerate
+`easy_install PyOpenGL PyOpenGL-accelerate`
