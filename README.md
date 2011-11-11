@@ -10,6 +10,7 @@ CS285 Project - Brandon Wang, Andrew Lee
 * Initial OpenGL Code:
 	* PyOpenGL working
   * Viewport/quaternion rotation working
+
 ###Not Done
 * Voxelization
 * Knot fitting
