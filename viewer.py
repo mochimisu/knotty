@@ -122,7 +122,7 @@ def main():
 
     obj_loader = ObjLoader()
     obj_loader.load("teapot.obj")
-    obj_loader.voxelize(10)
+    #obj_loader.voxelize(10)
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
