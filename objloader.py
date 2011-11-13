@@ -3,17 +3,9 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from numpy import *
 from numpy.linalg import *
+from primitives import *
+from aabb import *
 
-class Vertex(object):
-    def __init__(self):
-        self.position = None
-        self.normal = None
-        self.face = None
-        self.normal_samples = 0
-
-class Face(object):
-    def __init__(self):
-        self.vertices = []
 
 
 class ObjLoader(object):
@@ -23,7 +15,10 @@ class ObjLoader(object):
         self.obj_id = ObjLoader.obj_class_id
         self.polygon_list = False
         self.voxel_list = False
+        self.voxelized = {}
+        self.aabb = None
         ObjLoader.obj_class_id = ObjLoader.obj_class_id + 1
+
     def load(self, filename):
         self.filename = filename
         with open(filename) as f:
@@ -86,10 +81,16 @@ class ObjLoader(object):
                     n = n/norm(n)
                     v.normal = v.normal + n
                     v.normal_samples = v.normal_samples + 1
+        for face in self.faces:
+            face.normal = reduce(lambda x,y: x+y,
+                    map(lambda v: v.position, face.vertices))/3
         #average the face contribution
         for v in face.vertices:
             v.normal /= v.normal_samples
-        print str(len(self.faces))+" faces"
+        print str(len(self.faces))+" faces loaded"
+
+        #now create acceleration structure for voxelization
+        self.aabb = createAABBTree(self.faces)
 
     def drawTriangles(self):
         if not self.polygon_list:
@@ -103,5 +104,62 @@ class ObjLoader(object):
             glEndList()
             self.polygon_list = True
         glCallList(self.obj_id)
+
+    #voxelizes the result into a 3d array, splitting into
+    #"resoltion" cubes in its largest dimension
+    def voxelize(self, resolution):
+        self.voxelized = {}
+        min_vertex_pos = array([float("inf"), float("inf"), float("inf")])
+        max_vertex_pos = array([-float("inf"), -float("inf"), -float("inf")])
+
+        for p in self.faces:
+            for v in p.vertices:
+                max_vertex_pos[0] = max(max_vertex_pos[0], v.position[0])
+                max_vertex_pos[1] = max(max_vertex_pos[1], v.position[1])
+                max_vertex_pos[2] = max(max_vertex_pos[2], v.position[2])
+
+                min_vertex_pos[0] = min(min_vertex_pos[0], v.position[0])
+                min_vertex_pos[1] = min(min_vertex_pos[1], v.position[1])
+                min_vertex_pos[2] = min(min_vertex_pos[2], v.position[2])
+
+        print max_vertex_pos
+        print min_vertex_pos
+
+        distance = max_vertex_pos - min_vertex_pos
+        max_dist_dim = max(distance[0], distance[1], distance[2])
+        cube_dimension = float(max_dist_dim)/resolution
+        voxel_span = distance/cube_dimension
+
+        #winding number reference point
+        #here is a point defined to be outside the object
+        reference = array(max_vertex_pos+array([1,1,1]))
+
+        for i in xrange(0, int(voxel_span[0])):
+            for j in xrange(0, int(voxel_span[1])):
+                for k in xrange(0, int(voxel_span[2])):
+                    if i not in self.voxelized:
+                        self.voxelized[i] = {}
+                    if j not in self.voxelized[i]:
+                        self.voxelized[i][j] = {}
+                    if k not in self.voxelized[i][j]:
+                        self.voxelized[i][j][k] = {}
+                    #sample at the center of each voxel
+                    center = array([i,j,k])+array([cube_dimension/2])
+                    winding_dir = reference-center
+                    winding_number = 0
+                    winding_ray = Ray(center, winding_dir, 0.01)
+                    for prim in self.aabb.relevantPrimitives(winding_ray):
+                        if prim.intersect(winding_ray) < float("inf"):
+                            if dot(winding_ray.direction, prim.normal) > 0:
+                                winding_number += 1
+                            else:
+                                winding_number -= 1
+                    if winding_number >= 0:
+                        self.voxelized[i][j][k] = 1
+                    else:
+                        self.voxelized[i][j][k] = 0
+                    
+        
+
 
 
