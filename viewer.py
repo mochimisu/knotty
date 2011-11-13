@@ -10,6 +10,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from numpy import *
 from numpy.linalg import *
+from objloader import *
 import sys
 
 class Viewport(object):
@@ -26,6 +27,7 @@ class Viewport(object):
 viewport = Viewport()
 #Glut Window #
 window = 0 
+obj_loader = None
 
 def keyPressed(*args):
     #Escape key is from the a
@@ -100,44 +102,15 @@ def drawScene():
     glTranslatef(0,0,-5)
 
     glMultMatrixd(viewport.orientation)
+    obj_loader.drawTriangles()
 
-    #from NeHe
-    glBegin(GL_TRIANGLES) # Start Drawing The Pyramid
-    glColor3f(1,0,0)			# Red
-    glVertex3f(0,1,0)		# Top Of Triangle (Front)
-    glColor3f(0,1,0)			# Green
-    glVertex3f(-1,-1,1)		# Left Of Triangle (Front)
-    glColor3f(0,0,1)			# Blue
-    glVertex3f(1,-1,1)
-
-    glColor3f(1,0,0)			# Red
-    glVertex3f(0,1,0)		# Top Of Triangle (Right)
-    glColor3f(0,0,1)			# Blue
-    glVertex3f(1,-1,1)		# Left Of Triangle (Right)
-    glColor3f(0,1,0)			# Green
-    glVertex3f(1,-1,-1)		# Right 
-
-    glColor3f(1,0,0)			# Red
-    glVertex3f(0,1,0)		# Top Of Triangle (Back)
-    glColor3f(0,1,0)			# Green
-    glVertex3f(1,-1,-1)		# Left Of Triangle (Back)
-    glColor3f(0,0,1)			# Blue
-    glVertex3f(-1,-1,-1)		# Right Of 
-
-
-    glColor3f(1,0,0)			# Red
-    glVertex3f(0,1,0)		# Top Of Triangle (Left)
-    glColor3f(0,0,1)			# Blue
-    glVertex3f(-1,-1,-1)		# Left Of Triangle (Left)
-    glColor3f(0,1,0)			# Green
-    glVertex3f(-1,-1,1)		# Right Of Triangle (Left)
-    glEnd()	
 
     glutSwapBuffers()
 
 def main():
     global viewport
     global window
+    global obj_loader
     viewport.w = 640
     viewport.h = 480
 
@@ -146,6 +119,9 @@ def main():
     glutInitWindowSize(viewport.w,viewport.h)
     glutInitWindowPosition(0,0)
     window = glutCreateWindow("PyOpenGL test")
+
+    obj_loader = ObjLoader()
+    obj_loader.load("teapot.obj")
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
