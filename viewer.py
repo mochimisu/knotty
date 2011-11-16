@@ -15,14 +15,13 @@ import sys
 
 class Viewport(object):
     def __init__(self):
-        self.mousePos = array([0,0,0])
         self.w = 1
         self.h = 1
-        self.mousePos = array([0,0])
-        self.orientation =  matrix([[1,0,0,0],
-                             [0,1,0,0],
-                             [0,0,1,0],
-                             [0,0,0,1]])
+        self.mouse_pos = array([0,0])
+        self.orientation = identity3D()
+        self.mouse_mode = "rotate"
+        self.view_voxels = True
+        self.view_triangles = False
 
 viewport = Viewport()
 #Glut Window #
@@ -35,42 +34,51 @@ def keyPressed(*args):
     if args[0] == ESCAPE:
         glutDestroyWindow(window)
         sys.exit()
+    elif args[0] == 'z':
+        viewport.view_voxels = not viewport.view_voxels
+    elif args[0] == 'x':
+        viewport.view_triangles = not viewport.view_triangles
 
 def activeMotion(*args):
-    def rotation3D(axis, degree):
-        angleRad = degree * pi / 180.0
-        c = cos(angleRad)
-        s = sin(angleRad)
-        t = 1.0 - c
-        axis = axis / norm(axis)
-        return matrix([ [t*axis[0]*axis[0]+c, 
-                  t*axis[0]*axis[1]-s*axis[2],
-                  t*axis[0]*axis[2]+s*axis[1],
-                  0],
-                 [t*axis[0]*axis[1]+s*axis[2],
-                  t*axis[1]*axis[1]+c,
-                  t*axis[1]*axis[2]-s*axis[0],
-                  0],
-                 [t*axis[0]*axis[2]-s*axis[1],
-                  t*axis[1]*axis[2]+s*axis[0],
-                  t*axis[2]*axis[2]+c,
-                  0],
-                 [0,0,0,1] ])
 
-    newMouse = array([float(args[0])/float(viewport.w), 
+    new_mouse = array([float(args[0])/float(viewport.w), 
         float(args[1])/float(viewport.h)])
-    diff = newMouse - viewport.mousePos
-    viewport.mousePos = newMouse
+    diff = new_mouse - viewport.mouse_pos
+    viewport.mouse_pos = new_mouse
     length = norm(diff)
     if length > 0.001:
-        axis = array([diff[1]/length, diff[0]/length, 0])
-        viewport.orientation = (viewport.orientation * 
-                rotation3D(axis, -180*length))
+        if viewport.mouse_mode == "rotate":
+            axis = array([diff[1]/length, diff[0]/length, 0])
+            viewport.orientation = (viewport.orientation * 
+                    rotation3D(axis, -180*length))
+        elif viewport.mouse_mode == "scale":
+            scale_factor = diff[0]+diff[1]
+            viewport.orientation = (viewport.orientation *
+                    scaling3D(array([1+scale_factor,
+                        1+scale_factor,
+                        1+scale_factor])))
+        """
+        #doesn't work correctly
+        elif viewport.mouse_mode == "pan":
+            viewport.orientation = (viewport.orientation * 
+                    translation3D(array([diff[0], diff[1], 0])))
+        """
         glutPostRedisplay()
 
 def passiveMotion(*args):
-    viewport.mousePos = array([float(args[0])/float(viewport.w),
+    viewport.mouse_pos = array([float(args[0])/float(viewport.w),
         float(args[1])/float(viewport.h)])
+
+def mousePressed(*args):
+    #left click
+    if args[0] == 0:
+        viewport.mouse_mode = "rotate"
+    #middle click
+    elif args[0] == 1:
+        viewport.mouse_mode = "scale"
+    #right click
+    elif args[0] == 2:
+        viewport.mouse_mode = "pan"
 
 def initGL(w,h):
     glClearColor(0,0,0,0);
@@ -102,7 +110,10 @@ def drawScene():
     glTranslatef(0,0,-5)
 
     glMultMatrixd(viewport.orientation)
-    obj_loader.drawTriangles()
+    if viewport.view_voxels:
+        obj_loader.drawVoxels()
+    if viewport.view_triangles:
+        obj_loader.drawTriangles()
 
 
     glutSwapBuffers()
@@ -122,15 +133,19 @@ def main():
 
     obj_loader = ObjLoader()
     obj_loader.load("teapot.obj")
-    #obj_loader.voxelize(10)
+    obj_loader.voxelize(10)
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
     glutKeyboardFunc(keyPressed)
     glutMotionFunc(activeMotion)
     glutPassiveMotionFunc(passiveMotion)
+    glutMouseFunc(mousePressed)
 
     initGL(viewport.w, viewport.h)
+    glEnable(GL_LIGHTING)
+    glEnable(GL_LIGHT0)
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, [1,1,1,1])
     
     glutMainLoop()
 

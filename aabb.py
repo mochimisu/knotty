@@ -40,8 +40,8 @@ class BoundingBox(object):
             self.addPoints(point)
 
     def extend(self,new_bb):
-        new_max = new_bb.bounding_max()
-        new_min = new_bb.bounding_min()
+        new_max = new_bb.bounding_max
+        new_min = new_bb.bounding_min
         if not self.valid:
             self.bouning_max = new_max
             self.bounding_min = new_min
@@ -64,10 +64,10 @@ class AABBNode(object):
     def calculateBoundingSides(self):
         if self.isLeaf():
             for primitive in self.primitives:
-                self.bb.extend(primitive.worldBoundingBox)
+                self.bb.extend(primitive.worldBoundingBox())
         else:
             for child in self.children:
-                self.bb.extend(primitive.calculateBoundingSides())
+                self.bb.extend(child.calculateBoundingSides())
         return self.bb
     def relevantPrimitives(self, ray):
         if self.bb.intersect(ray):

@@ -5,8 +5,7 @@ from numpy import *
 from numpy.linalg import *
 from primitives import *
 from aabb import *
-
-
+import sys
 
 class ObjLoader(object):
     obj_class_id = 1
@@ -91,10 +90,12 @@ class ObjLoader(object):
 
         #now create acceleration structure for voxelization
         self.aabb = createAABBTree(self.faces)
+        self.aabb.calculateBoundingSides()
+        print "AABB Tree created"
 
     def drawTriangles(self):
         if not self.polygon_list:
-            glNewList(self.obj_id, GL_COMPILE)
+            glNewList((self.obj_id*10)+0, GL_COMPILE)
             glBegin(GL_TRIANGLES)
             for face in self.faces:
                 for v in face.vertices:
@@ -103,7 +104,78 @@ class ObjLoader(object):
             glEnd()
             glEndList()
             self.polygon_list = True
-        glCallList(self.obj_id)
+        glCallList(self.obj_id*10 + 0)
+
+    def drawVoxels(self):
+        if not self.voxel_list:
+            glNewList((self.obj_id*10)+1, GL_COMPILE)
+            glBegin(GL_QUADS)
+            for i in xrange(len(self.voxelized)):
+                for j in xrange(len(self.voxelized[i])):
+                    for k in xrange(len(self.voxelized[i][j])):
+                        cur_voxel = self.voxelized[i][j][k]
+                        if cur_voxel:
+                            #defining v from the center, and going ccw
+                            #for each face starting with the "front" face's
+                            #top right vertex
+                            v= [ array([i+0.5, j+0.5, k-0.5]),
+                                 array([i-0.5, j+0.5, k-0.5]), 
+                                 array([i-0.5, j-0.5, k-0.5]), 
+                                 array([i+0.5, j-0.5, k-0.5]), 
+                                 array([i+0.5, j-0.5, k+0.5]), 
+                                 array([i+0.5, j+0.5, k+0.5]), 
+                                 array([i-0.5, j+0.5, k+0.5]), 
+                                 array([i-0.5, j-0.5, k+0.5]) ] 
+                            #scale the coordinates to the voxel dimensions
+                            #and appropriately offset the shape
+                            for vert in xrange(len(v)):
+                                v[vert] = (((v[vert]+array([0.5,0.5,0.5]))*
+                                            self.voxel_dimension)+
+                                           self.voxel_zero)
+
+                            #right face (positive x)
+                            glVertex3f(v[5][0], v[5][1], v[5][2])
+                            glVertex3f(v[0][0], v[0][1], v[0][2])
+                            glVertex3f(v[3][0], v[3][1], v[3][2])
+                            glVertex3f(v[4][0], v[4][1], v[4][2])
+
+                            #left face (negative x)
+                            glVertex3f(v[1][0], v[1][1], v[1][2])
+                            glVertex3f(v[6][0], v[6][1], v[6][2])
+                            glVertex3f(v[7][0], v[7][1], v[7][2])
+                            glVertex3f(v[2][0], v[2][1], v[2][2])
+
+                            #top face (positive y)
+                            glVertex3f(v[0][0], v[0][1], v[0][2])
+                            glVertex3f(v[5][0], v[5][1], v[5][2])
+                            glVertex3f(v[6][0], v[6][1], v[6][2])
+                            glVertex3f(v[1][0], v[1][1], v[1][2])
+
+                            #bottom face (negative y)
+                            glVertex3f(v[3][0], v[3][1], v[3][2])
+                            glVertex3f(v[2][0], v[2][1], v[2][2])
+                            glVertex3f(v[7][0], v[7][1], v[7][2])
+                            glVertex3f(v[4][0], v[4][1], v[4][2])
+
+                            #back face (positive z)
+                            glVertex3f(v[6][0], v[6][1], v[6][2])
+                            glVertex3f(v[5][0], v[5][1], v[5][2])
+                            glVertex3f(v[4][0], v[4][1], v[4][2])
+                            glVertex3f(v[7][0], v[7][1], v[7][2])
+
+                            #front face (negative z)
+                            glVertex3f(v[0][0], v[0][1], v[0][2])
+                            glVertex3f(v[1][0], v[1][1], v[1][2])
+                            glVertex3f(v[2][0], v[2][1], v[2][2])
+                            glVertex3f(v[3][0], v[3][1], v[3][2])
+    
+            glEnd()
+            glEndList()
+            self.voxel_list = True
+        glCallList(self.obj_id*10 + 1)
+
+
+
 
     #voxelizes the result into a 3d array, splitting into
     #"resoltion" cubes in its largest dimension
@@ -122,18 +194,26 @@ class ObjLoader(object):
                 min_vertex_pos[1] = min(min_vertex_pos[1], v.position[1])
                 min_vertex_pos[2] = min(min_vertex_pos[2], v.position[2])
 
-        print max_vertex_pos
-        print min_vertex_pos
 
         distance = max_vertex_pos - min_vertex_pos
         max_dist_dim = max(distance[0], distance[1], distance[2])
         cube_dimension = float(max_dist_dim)/resolution
         voxel_span = distance/cube_dimension
+        voxel_span = [int(voxel_span[0]+0.5), int(voxel_span[1]+0.5), 
+                int(voxel_span[2]+0.5)]
 
+        self.voxel_dimension = cube_dimension
         #winding number reference point
         #here is a point defined to be outside the object
         reference = array(max_vertex_pos+array([1,1,1]))
 
+        print ("Creating voxelized object with resolution: ("+
+                str(voxel_span[0])+","+str(voxel_span[1])+","+
+                str(voxel_span[2])+")")
+
+        self.voxel_zero = min_vertex_pos
+        ct = 0
+        print "",
         for i in xrange(0, int(voxel_span[0])):
             for j in xrange(0, int(voxel_span[1])):
                 for k in xrange(0, int(voxel_span[2])):
@@ -144,20 +224,34 @@ class ObjLoader(object):
                     if k not in self.voxelized[i][j]:
                         self.voxelized[i][j][k] = {}
                     #sample at the center of each voxel
-                    center = array([i,j,k])+array([cube_dimension/2])
+                    center = (array([i+0.5,j+0.5,k+0.5])*cube_dimension+
+                              self.voxel_zero)
                     winding_dir = reference-center
                     winding_number = 0
                     winding_ray = Ray(center, winding_dir, 0.01)
-                    for prim in self.aabb.relevantPrimitives(winding_ray):
-                        if prim.intersect(winding_ray) < float("inf"):
+                    #for prim in self.aabb.relevantPrimitives(winding_ray):
+                    for prim in self.faces:
+                        intersection = prim.intersect(winding_ray)
+                        #print intersection
+                        if intersection < float("inf"):
                             if dot(winding_ray.direction, prim.normal) > 0:
                                 winding_number += 1
                             else:
                                 winding_number -= 1
-                    if winding_number >= 0:
-                        self.voxelized[i][j][k] = 1
+                            #winding_number = 1
+                    if winding_number > 0:
+                        self.voxelized[i][j][k] = True
                     else:
-                        self.voxelized[i][j][k] = 0
+                        self.voxelized[i][j][k] = False
+                    ct += 1
+                    print ("\rVoxelization: "+
+                            str(ct)+"/"+
+                            str(voxel_span[0]*voxel_span[1]*voxel_span[2])+
+                            ", current winding number: "+
+                            str(winding_number)),
+                    sys.stdout.flush()
+        print ""
+        print "Created voxelized object!"
                     
         
 
