@@ -222,13 +222,15 @@ class ObjLoader(object):
                 winding_ray = Ray(center, winding_dir, 0.01)
                 winding_number = 0
                 intersections = []
-                for prim in self.faces:
+                #for prim in self.faces:
+                for prim in self.aabb.relevantPrimitives(winding_ray):
                     intersection = prim.intersect(winding_ray)
                     if intersection < float("inf"):
                         #add winding number later
                         intersections.append(intersection)
                 intersections.sort()
                 intersections = map(lambda x: x/cube_dimension, intersections)
+                #print intersections
                 #XOR for now
                 outside = True
                 next_intersection = 0

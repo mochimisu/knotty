@@ -4,34 +4,37 @@ from algebra import *
 class BoundingBox(object):
     def __init__(self):
         self.valid = False
-        self.bounding_min = array([0,0,0])
-        self.bounding_max = array([0,0,0])
+        self.bounding_min = array([0.0,0.0,0.0])
+        self.bounding_max = array([0.0,0.0,0.0])
 
     def intersect(self, ray):
-        t_min = array([0,0,0])
-        t_max = array([0,0,0])
-        a = array([1.0/ray.direction[0],
-                   1.0/ray.direction[1],
-                   1.0/ray.direction[2]])
+        return self.z_intersect(ray)
+
+    def z_intersect(self,ray):
+        #ignore ray direction, just consider if ray is shooting in z
+        for i in xrange(0,2):
+            if (ray.start[i] > self.bounding_max[i] or 
+                    ray.start[i] < self.bounding_min[i]):
+                return False
+        #print "intersect"
+        return True
+
+    def normal_intersect(self, ray):
+        t_min = array([0.0,0.0,0.0])
+        t_max = array([0.0,0.0,0.0])
+        a = array([0.0,0.0,0.0])
         e = ray.start
         for i in xrange(0,3):
+            a[i] = 1.0/ray.direction[i]
             if(a[i] >= 0):
-                t_min[i] = a[i] * self.bounding_min[i] - e[i]
-                t_max[i] = a[i] * self.bounding_max[i] - e[i]
+                t_min[i] = a[i] * (self.bounding_min[i] - e[i])
+                t_max[i] = a[i] * (self.bounding_max[i] - e[i])
             else:
-                t_min[i] = a[i] * self.bounding_max[i] - e[i]
-                t_max[i] = a[i] * self.bounding_min[i] - e[i]
+                t_min[i] = a[i] * (self.bounding_max[i] - e[i])
+                t_max[i] = a[i] * (self.bounding_min[i] - e[i])
         if (t_min[0] > t_max[1] or t_min[0] > t_max[2] or
             t_min[1] > t_max[0] or t_min[1] > t_max[2] or
             t_min[2] > t_max[0] or t_min[2] > t_max[1]):
-            #also check if ray start position is inside box as well...
-            if (ray.start[0] > self.bounding_min[0] and
-                ray.start[0] < self.bounding_max[0] and
-                ray.start[1] > self.bounding_min[1] and
-                ray.start[1] < self.bounding_max[1] and
-                ray.start[2] > self.bounding_min[2] and
-                ray.start[2] < self.bounding_max[2]):
-                return True
             return False
         return True
 
@@ -50,11 +53,11 @@ class BoundingBox(object):
             self.addPoints(point)
 
     def extend(self,new_bb):
-        new_max = new_bb.bounding_max
-        new_min = new_bb.bounding_min
+        new_max = array(new_bb.bounding_max)
+        new_min = array(new_bb.bounding_min)
         if not self.valid:
-            self.bouning_max = array(new_max)
-            self.bounding_min = array(new_min)
+            self.bouning_max = new_max
+            self.bounding_min = new_min
             self.valid = True
         for i in xrange(0,3):
             self.bounding_max[i] = max(self.bounding_max[i], new_max[i])
@@ -74,7 +77,8 @@ class AABBNode(object):
     def calculateBoundingSides(self):
         if self.isLeaf():
             for primitive in self.primitives:
-                self.bb.extend(primitive.worldBoundingBox())
+                new_bb = primitive.worldBoundingBox()
+                self.bb.extend(new_bb)
         else:
             for child in self.children:
                 self.bb.extend(child.calculateBoundingSides())
@@ -104,6 +108,7 @@ def createAABBTree(prims, depth=0):
 
         bucket_a = sorted_axis[:len(sorted_axis)/2]
         bucket_b = sorted_axis[len(sorted_axis)/2:]
+
         new_node.addChild(createAABBTree(bucket_a,depth+1))
         new_node.addChild(createAABBTree(bucket_b,depth+1))
     return new_node
