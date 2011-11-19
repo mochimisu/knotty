@@ -8,7 +8,14 @@ class BoundingBox(object):
         self.bounding_max = array([0.0,0.0,0.0])
 
     def intersect(self, ray):
-        return self.z_intersect(ray)
+        #special case the z intersect used in voxelization
+        #for faster intersection calcs
+        if (ray.direction[0] == 0 and 
+            ray.direction[1] == 0 and 
+            ray.direction[2] == 1):
+            return self.z_intersect(ray)
+        else:
+            return self.normal_intersect(ray)
 
     def z_intersect(self,ray):
         #ignore ray direction, just consider if ray is shooting in z
