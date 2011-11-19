@@ -129,7 +129,7 @@ class ObjLoader(object):
                             #scale the coordinates to the voxel dimensions
                             #and appropriately offset the shape
                             for vert in xrange(len(v)):
-                                v[vert] = (((v[vert]+array([0.5,0.5,0.5]))*
+                                v[vert] = (((v[vert]+array([0.5,0.5,0]))*
                                             self.voxel_dimension)+
                                            self.voxel_zero)
 
@@ -220,28 +220,29 @@ class ObjLoader(object):
                         self.voxel_zero)
                 winding_dir = array([0,0,1])
                 winding_ray = Ray(center, winding_dir, 0.01)
-                winding_number = 0
                 intersections = []
                 #for prim in self.faces:
                 for prim in self.aabb.relevantPrimitives(winding_ray):
                     intersection = prim.intersect(winding_ray)
                     if intersection < float("inf"):
-                        #add winding number later
-                        intersections.append(intersection)
-                intersections.sort()
-                intersections = map(lambda x: x/cube_dimension, intersections)
-                #print intersections
-                #XOR for now
-                outside = True
+                        intersections.append((intersection
+                            ,dot(prim.normal, winding_dir) < 0))
+                intersections = sorted(intersections, key=lambda x:x[0])
+                intersections = map(lambda x: (x[0]/cube_dimension,x[1]), 
+                        intersections)
                 next_intersection = 0
+                winding_number = 0
                 for k in xrange(0, int(voxel_span[2])):
                     if k not in self.voxelized[i][j]:
                         self.voxelized[i][j][k] = {}
                     if (next_intersection < len(intersections) and
-                            k > intersections[next_intersection]):
-                        outside = not outside
+                            k > intersections[next_intersection][0]):
+                        if intersections[next_intersection][1]:
+                            winding_number += 1
+                        else:
+                            winding_number -= 1
                         next_intersection += 1
-                    self.voxelized[i][j][k] = not outside
+                    self.voxelized[i][j][k] = (winding_number > 0)
                 print ("\rVoxelization: "+
                         str(i*voxel_span[1]+j)+"/"+
                         str(voxel_span[0]*voxel_span[1])),#+
