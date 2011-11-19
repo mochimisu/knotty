@@ -20,10 +20,10 @@ class ObjLoader(object):
 
     def load(self, filename):
         self.filename = filename
+        vertices = {}
         with open(filename) as f:
             #vertices first, vertices indexed by 1
             cur_vert = 1
-            vertices = {}
             for line in f:
                 values = line.rstrip("\n").split(" ")
                 if values[0] == "v":
@@ -31,7 +31,7 @@ class ObjLoader(object):
                     vertices[cur_vert].position = array([float(values[1]), 
                                                          float(values[2]), 
                                                          float(values[3])])
-                cur_vert = cur_vert + 1
+                    cur_vert += 1
         with open(filename) as f:
             cur_vert_n = 1
             normals = {}
@@ -49,6 +49,7 @@ class ObjLoader(object):
                     normals[cur_vert_n] = array([float(values[1]),
                                                  float(values[2]),
                                                  float(values[3])])
+                    cur_vert_n += 1
                 #face
                 elif values[0] == "f":
                     vtn = map(lambda v: v.split("/"), 
@@ -60,7 +61,7 @@ class ObjLoader(object):
                     if len(vtn[0]) > 1:
                         #we have normal information
                         for i in xrange(0,3):
-                            face_vertices[i].normal = normals[vtn[i][2]]
+                            face_vertices[i].normal = normals[int(vtn[i][2])]
                             #note that we dont want to calculate normals
                             #through interpolation lter
                             face_vertices[i].normal_samples = -1

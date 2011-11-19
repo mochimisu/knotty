@@ -12,6 +12,7 @@ from numpy import *
 from numpy.linalg import *
 from objloader import *
 import sys
+import argparse
 
 class Viewport(object):
     def __init__(self):
@@ -122,6 +123,10 @@ def main():
     global viewport
     global window
     global obj_loader
+    parser = argparse.ArgumentParser(description="Knotify some OBJs.")
+    parser.add_argument("object_file", metavar ="obj", default="teapot.obj")
+    args = parser.parse_args()
+
     viewport.w = 640
     viewport.h = 480
 
@@ -132,7 +137,7 @@ def main():
     window = glutCreateWindow("Knotty (in progress)")
 
     obj_loader = ObjLoader()
-    obj_loader.load("teapot.obj")
+    obj_loader.load(args.object_file)
     obj_loader.voxelize(50)
 
     glutDisplayFunc(drawScene)
