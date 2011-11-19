@@ -129,7 +129,7 @@ def main():
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
     glutInitWindowSize(viewport.w,viewport.h)
     glutInitWindowPosition(0,0)
-    window = glutCreateWindow("PyOpenGL test")
+    window = glutCreateWindow("Knotty (in progress)")
 
     obj_loader = ObjLoader()
     obj_loader.load("teapot.obj")
