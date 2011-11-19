@@ -134,36 +134,42 @@ class ObjLoader(object):
                                            self.voxel_zero)
 
                             #right face (positive x)
+                            glNormal3f(1,0,0)
                             glVertex3f(v[5][0], v[5][1], v[5][2])
                             glVertex3f(v[0][0], v[0][1], v[0][2])
                             glVertex3f(v[3][0], v[3][1], v[3][2])
                             glVertex3f(v[4][0], v[4][1], v[4][2])
 
                             #left face (negative x)
+                            glNormal3f(-1,0,0)
                             glVertex3f(v[1][0], v[1][1], v[1][2])
                             glVertex3f(v[6][0], v[6][1], v[6][2])
                             glVertex3f(v[7][0], v[7][1], v[7][2])
                             glVertex3f(v[2][0], v[2][1], v[2][2])
 
                             #top face (positive y)
+                            glNormal3f(0,1,0)
                             glVertex3f(v[0][0], v[0][1], v[0][2])
                             glVertex3f(v[5][0], v[5][1], v[5][2])
                             glVertex3f(v[6][0], v[6][1], v[6][2])
                             glVertex3f(v[1][0], v[1][1], v[1][2])
 
                             #bottom face (negative y)
+                            glNormal3f(0,-1,0)
                             glVertex3f(v[3][0], v[3][1], v[3][2])
                             glVertex3f(v[2][0], v[2][1], v[2][2])
                             glVertex3f(v[7][0], v[7][1], v[7][2])
                             glVertex3f(v[4][0], v[4][1], v[4][2])
 
                             #back face (positive z)
+                            glNormal3f(0,0,1)
                             glVertex3f(v[6][0], v[6][1], v[6][2])
                             glVertex3f(v[5][0], v[5][1], v[5][2])
                             glVertex3f(v[4][0], v[4][1], v[4][2])
                             glVertex3f(v[7][0], v[7][1], v[7][2])
 
                             #front face (negative z)
+                            glNormal3f(0,0,-1)
                             glVertex3f(v[0][0], v[0][1], v[0][2])
                             glVertex3f(v[1][0], v[1][1], v[1][2])
                             glVertex3f(v[2][0], v[2][1], v[2][2])
@@ -210,6 +216,7 @@ class ObjLoader(object):
                 str(voxel_span[2])+")")
 
         #Go through 2D array of x,y and shoot ray in z direction
+        total_iterations = voxel_span[0]*voxel_span[1]
         for i in xrange(0, int(voxel_span[0])):
             if i not in self.voxelized:
                 self.voxelized[i] = {}
@@ -245,11 +252,14 @@ class ObjLoader(object):
                     self.voxelized[i][j][k] = (winding_number > 0)
                 print ("\rVoxelization: "+
                         str(i*voxel_span[1]+j)+"/"+
-                        str(voxel_span[0]*voxel_span[1])),#+
+                        str(total_iterations)),#+
                         #", current winding number: "+
                         #str(winding_number)),
                 sys.stdout.flush()
-        print "\rVoxelization: Complete"
+        print ("\rVoxelization: "+
+                str(total_iterations)+"/"+
+                str(total_iterations)+
+                "... Complete!")
         print "Created voxelized object!"
                     
         
