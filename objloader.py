@@ -210,7 +210,6 @@ class ObjLoader(object):
                 str(voxel_span[2])+")")
 
         #Go through 2D array of x,y and shoot ray in z direction
-        print ""
         for i in xrange(0, int(voxel_span[0])):
             if i not in self.voxelized:
                 self.voxelized[i] = {}
@@ -229,6 +228,7 @@ class ObjLoader(object):
                         #add winding number later
                         intersections.append(intersection)
                 intersections.sort()
+                intersections = map(lambda x: x/cube_dimension, intersections)
                 #XOR for now
                 outside = True
                 next_intersection = 0
@@ -239,18 +239,14 @@ class ObjLoader(object):
                             k > intersections[next_intersection]):
                         outside = not outside
                         next_intersection += 1
-                    if outside:
-                        self.voxelized[i][j][k] = False
-                    else:
-                        self.voxelized[i][j][k] = True
+                    self.voxelized[i][j][k] = not outside
                 print ("\rVoxelization: "+
                         str(i*voxel_span[1]+j)+"/"+
-                        str(voxel_span[0]*voxel_span[1])+
-                        ", current winding number: "+
-                        str(winding_number)),
+                        str(voxel_span[0]*voxel_span[1])),#+
+                        #", current winding number: "+
+                        #str(winding_number)),
                 sys.stdout.flush()
-        print ""
-
+        print "\rVoxelization: Complete"
         print "Created voxelized object!"
                     
         

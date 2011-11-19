@@ -75,10 +75,10 @@ def mousePressed(*args):
         viewport.mouse_mode = "rotate"
     #middle click
     elif args[0] == 1:
-        viewport.mouse_mode = "scale"
+        viewport.mouse_mode = "pan"
     #right click
     elif args[0] == 2:
-        viewport.mouse_mode = "pan"
+        viewport.mouse_mode = "scale"
 
 def initGL(w,h):
     glClearColor(0,0,0,0);
@@ -133,7 +133,7 @@ def main():
 
     obj_loader = ObjLoader()
     obj_loader.load("teapot.obj")
-    obj_loader.voxelize(10)
+    obj_loader.voxelize(20)
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
