@@ -203,54 +203,54 @@ class ObjLoader(object):
                 int(voxel_span[2]+0.5)]
 
         self.voxel_dimension = cube_dimension
-        #winding number reference point
-        #here is a point defined to be outside the object
-        reference = array(max_vertex_pos+array([1,1,1]))
+        self.voxel_zero = min_vertex_pos
 
         print ("Creating voxelized object with resolution: ("+
                 str(voxel_span[0])+","+str(voxel_span[1])+","+
                 str(voxel_span[2])+")")
 
-        self.voxel_zero = min_vertex_pos
-        ct = 0
-        print "",
+        #Go through 2D array of x,y and shoot ray in z direction
+        print ""
         for i in xrange(0, int(voxel_span[0])):
+            if i not in self.voxelized:
+                self.voxelized[i] = {}
             for j in xrange(0, int(voxel_span[1])):
+                if j not in self.voxelized[i]:
+                    self.voxelized[i][j] = {}
+                center = (array([i+0.5, j+0.5, -0.5])*cube_dimension+
+                        self.voxel_zero)
+                winding_dir = array([0,0,1])
+                winding_ray = Ray(center, winding_dir, 0.01)
+                winding_number = 0
+                intersections = []
+                for prim in self.faces:
+                    intersection = prim.intersect(winding_ray)
+                    if intersection < float("inf"):
+                        #add winding number later
+                        intersections.append(intersection)
+                intersections.sort()
+                #XOR for now
+                outside = True
+                next_intersection = 0
                 for k in xrange(0, int(voxel_span[2])):
-                    if i not in self.voxelized:
-                        self.voxelized[i] = {}
-                    if j not in self.voxelized[i]:
-                        self.voxelized[i][j] = {}
                     if k not in self.voxelized[i][j]:
                         self.voxelized[i][j][k] = {}
-                    #sample at the center of each voxel
-                    center = (array([i+0.5,j+0.5,k+0.5])*cube_dimension+
-                              self.voxel_zero)
-                    winding_dir = reference-center
-                    winding_number = 0
-                    winding_ray = Ray(center, winding_dir, 0.01)
-                    #for prim in self.aabb.relevantPrimitives(winding_ray):
-                    for prim in self.faces:
-                        intersection = prim.intersect(winding_ray)
-                        #print intersection
-                        if intersection < float("inf"):
-                            if dot(winding_ray.direction, prim.normal) > 0:
-                                winding_number += 1
-                            else:
-                                winding_number -= 1
-                            #winding_number = 1
-                    if winding_number > 0:
-                        self.voxelized[i][j][k] = True
-                    else:
+                    if (next_intersection < len(intersections) and
+                            k > intersections[next_intersection]):
+                        outside = not outside
+                        next_intersection += 1
+                    if outside:
                         self.voxelized[i][j][k] = False
-                    ct += 1
-                    print ("\rVoxelization: "+
-                            str(ct)+"/"+
-                            str(voxel_span[0]*voxel_span[1]*voxel_span[2])+
-                            ", current winding number: "+
-                            str(winding_number)),
-                    sys.stdout.flush()
+                    else:
+                        self.voxelized[i][j][k] = True
+                print ("\rVoxelization: "+
+                        str(i*voxel_span[1]+j)+"/"+
+                        str(voxel_span[0]*voxel_span[1])+
+                        ", current winding number: "+
+                        str(winding_number)),
+                sys.stdout.flush()
         print ""
+
         print "Created voxelized object!"
                     
         

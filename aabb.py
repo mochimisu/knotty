@@ -10,8 +10,10 @@ class BoundingBox(object):
     def intersect(self, ray):
         t_min = array([0,0,0])
         t_max = array([0,0,0])
-        a = array([1,1,1,])/ortho_proj(ray.direction)
-        e = ortho_proj(ray.start)
+        a = array([1.0/ray.direction[0],
+                   1.0/ray.direction[1],
+                   1.0/ray.direction[2]])
+        e = ray.start
         for i in xrange(0,3):
             if(a[i] >= 0):
                 t_min[i] = a[i] * self.bounding_min[i] - e[i]
@@ -22,6 +24,14 @@ class BoundingBox(object):
         if (t_min[0] > t_max[1] or t_min[0] > t_max[2] or
             t_min[1] > t_max[0] or t_min[1] > t_max[2] or
             t_min[2] > t_max[0] or t_min[2] > t_max[1]):
+            #also check if ray start position is inside box as well...
+            if (ray.start[0] > self.bounding_min[0] and
+                ray.start[0] < self.bounding_max[0] and
+                ray.start[1] > self.bounding_min[1] and
+                ray.start[1] < self.bounding_max[1] and
+                ray.start[2] > self.bounding_min[2] and
+                ray.start[2] < self.bounding_max[2]):
+                return True
             return False
         return True
 
@@ -31,8 +41,8 @@ class BoundingBox(object):
                 self.bounding_max[i] = max(self.bounding_max[i], new_point[i])
                 self.bounding_min[i] = min(self.bounding_min[i], new_point[i])
         else:
-            self.bounding_min = new_point
-            self.bounding_max = new_point
+            self.bounding_min = array(new_point)
+            self.bounding_max = array(new_point)
             self.valid = True
 
     def addPoints(self,new_points):
@@ -43,8 +53,8 @@ class BoundingBox(object):
         new_max = new_bb.bounding_max
         new_min = new_bb.bounding_min
         if not self.valid:
-            self.bouning_max = new_max
-            self.bounding_min = new_min
+            self.bouning_max = array(new_max)
+            self.bounding_min = array(new_min)
             self.valid = True
         for i in xrange(0,3):
             self.bounding_max[i] = max(self.bounding_max[i], new_max[i])
@@ -91,8 +101,9 @@ def createAABBTree(prims, depth=0):
         median_axis = 0 
         #i would use quickselect, but python only has sort implemented
         sorted_axis = sorted(prims, key=lambda p: p.center()[div_axis])
+
         bucket_a = sorted_axis[:len(sorted_axis)/2]
-        bucket_b = sorted_axis[len(sorted_axis)/2+1:]
+        bucket_b = sorted_axis[len(sorted_axis)/2:]
         new_node.addChild(createAABBTree(bucket_a,depth+1))
         new_node.addChild(createAABBTree(bucket_b,depth+1))
     return new_node
