@@ -301,9 +301,3 @@ class ObjLoader(object):
         #Loop through voxels then create pointers from each voxel to its
         #neighbors
         print "unimplemented"
-
-
-        
-
-
-

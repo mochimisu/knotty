@@ -13,9 +13,12 @@ CS285 Project - Brandon Wang, Andrew Lee
 * Initial OpenGL Code:
 	* PyOpenGL working
   * Viewport/quaternion rotation working
+* Voxelization:
+	* Only for "well-behaved" OBJs
+  * Winding Number
+  * Parity/XOR specifiable by user
 
 ###Not Done
-* Voxelization
 * Knot fitting
 * Knot to polygon
 * Polygon to STL
