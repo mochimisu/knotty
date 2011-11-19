@@ -2,6 +2,24 @@ from numpy import *
 from algebra import *
 from aabb import *
 
+class Directions(object):
+    POSSIBLE=6
+    POSX = 0
+    POSY = 1
+    POSZ = 2
+    NEGX = 3
+    NEGY = 4
+    NEGZ = 5
+
+class Voxel(object):
+    def __init__(self):
+        self.exists = False
+        self.connections = []
+        for i in xrange(Directions.POSSIBLE):
+            self.connections.append(None)
+        self.connected = False
+        self.pos = array([0,0,0])
+
 class Vertex(object):
     def __init__(self):
         self.position = None

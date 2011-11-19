@@ -120,7 +120,7 @@ class ObjLoader(object):
                 for j in xrange(len(self.voxelized[i])):
                     for k in xrange(len(self.voxelized[i][j])):
                         cur_voxel = self.voxelized[i][j][k]
-                        if cur_voxel:
+                        if cur_voxel.exists:
                             #defining v from the center, and going ccw
                             #for each face starting with the "front" face's
                             #top right vertex
@@ -255,8 +255,8 @@ class ObjLoader(object):
                         intersections[a] = (intersections[a][0],prev)
                         prev = not prev
                     if len(intersections)%2 == 1:
-                        print "Using XOR when there are an odd # of "+
-                            "intersections... Not good."
+                        print ("Using XOR when there are an odd # of "+
+                            "intersections... Not good.")
                 next_intersection = 0
                 winding_number = 0
                 for k in xrange(0, int(voxel_span[2])):
@@ -274,8 +274,11 @@ class ObjLoader(object):
                         print ("Something went wrong - winding number > 0 "+
                         "after all intersections... Setting it to 0")
                         winding_number = 0
-                    self.voxelized[i][j][k] = (winding_number > 0)
-                print ("\rVoxelization: "+
+                    new_vox = Voxel()
+                    new_vox.exists = (winding_number > 0)
+                    new_vox.pos = array([i, j, k])
+                    self.voxelized[i][j][k] = new_vox
+                    print ("\rVoxelization: "+
                         str(i*voxel_span[1]+j)+"/"+
                         str(total_iterations)),#+
                         #", current winding number: "+
@@ -286,7 +289,20 @@ class ObjLoader(object):
                 str(total_iterations)+
                 "... Complete!")
         print "Created voxelized object!"
-                    
+
+    def removeInnerVoxels(self):
+        #Tag the outside voxels, then run modified Kruskal's 
+        #to find tree spanning all tagged voxels, traversing paths of least
+        #cost through untagged voxels, if need be.
+        #Essentially, we want to create an outer shell of voxels.
+        print "unimplemented"
+
+    def findConnections(self):
+        #Loop through voxels then create pointers from each voxel to its
+        #neighbors
+        print "unimplemented"
+
+
         
 
 
