@@ -125,7 +125,16 @@ def main():
     global obj_loader
     parser = argparse.ArgumentParser(description="Knotify some OBJs.")
     parser.add_argument("object_file", metavar ="obj", default="teapot.obj")
+    parser.add_argument("--xor", dest="use_xor", action="store_const",
+            const=True, default=False, 
+            help="Use XOR instead of Winding Number")
     args = parser.parse_args()
+
+    print "Inside-outside test: ",
+    if args.use_xor:
+        print "XOR"
+    else:
+        print "Winding Number"
 
     viewport.w = 640
     viewport.h = 480
@@ -137,6 +146,7 @@ def main():
     window = glutCreateWindow("Knotty (in progress)")
 
     obj_loader = ObjLoader()
+    obj_loader.use_xor = args.use_xor
     obj_loader.load(args.object_file)
     obj_loader.voxelize(50)
 

@@ -16,6 +16,7 @@ class ObjLoader(object):
         self.voxel_list = False
         self.voxelized = {}
         self.aabb = None
+        self.use_xor = False
         ObjLoader.obj_class_id = ObjLoader.obj_class_id + 1
 
     def load(self, filename):
@@ -111,6 +112,10 @@ class ObjLoader(object):
         if not self.voxel_list:
             glNewList((self.obj_id*10)+1, GL_COMPILE)
             glBegin(GL_QUADS)
+            total_iter = (len(self.voxelized) * 
+                    len(self.voxelized[0]) * 
+                    len(self.voxelized[0][0]))
+            ct = 1
             for i in xrange(len(self.voxelized)):
                 for j in xrange(len(self.voxelized[i])):
                     for k in xrange(len(self.voxelized[i][j])):
@@ -175,7 +180,13 @@ class ObjLoader(object):
                             glVertex3f(v[1][0], v[1][1], v[1][2])
                             glVertex3f(v[2][0], v[2][1], v[2][2])
                             glVertex3f(v[3][0], v[3][1], v[3][2])
-    
+                            """
+                            print ("\rDisplay List Creation: "+
+                                    str(ct)+"/"+
+                                    str(total_iter)),
+                            sys.stdout.flush()
+                            ct += 1
+                            """
             glEnd()
             glEndList()
             self.voxel_list = True
@@ -238,6 +249,14 @@ class ObjLoader(object):
                 intersections = sorted(intersections, key=lambda x:x[0])
                 intersections = map(lambda x: (x[0]/cube_dimension,x[1]), 
                         intersections)
+                if self.use_xor:
+                    prev = True
+                    for a in xrange(len(intersections)):
+                        intersections[a] = (intersections[a][0],prev)
+                        prev = not prev
+                    if len(intersections)%2 == 1:
+                        print "Using XOR when there are an odd # of "+
+                            "intersections... Not good."
                 next_intersection = 0
                 winding_number = 0
                 for k in xrange(0, int(voxel_span[2])):
@@ -250,6 +269,11 @@ class ObjLoader(object):
                         else:
                             winding_number -= 1
                         next_intersection += 1
+                    elif (next_intersection >= len(intersections) and
+                            winding_number > 0):
+                        print ("Something went wrong - winding number > 0 "+
+                        "after all intersections... Setting it to 0")
+                        winding_number = 0
                     self.voxelized[i][j][k] = (winding_number > 0)
                 print ("\rVoxelization: "+
                         str(i*voxel_span[1]+j)+"/"+
