@@ -17,10 +17,13 @@ class Voxel(object):
         self.connections = []
         for i in xrange(Directions.POSSIBLE):
             self.connections.append(None)
-        self.connected = False
         self.border = False
+        self.border_connection = False
         self.pos = array([0,0,0])
         self.visited = False
+
+    def validConnections(self):
+        return filter(lambda x: x is not None, self.connections)
 
 class Vertex(object):
     def __init__(self):

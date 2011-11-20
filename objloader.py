@@ -121,7 +121,8 @@ class ObjLoader(object):
                 for j in xrange(len(self.voxelized[i])):
                     for k in xrange(len(self.voxelized[i][j])):
                         cur_voxel = self.voxelized[i][j][k]
-                        if cur_voxel.exists and cur_voxel.border:
+                        if cur_voxel.exists and (cur_voxel.border or 
+                                                 cur_voxel.border_connection):
                             alpha = 1.0
                             #defining v from the center, and going ccw
                             #for each face starting with the "front" face's
@@ -347,9 +348,55 @@ class ObjLoader(object):
                         if next_vox is not None:
                             outside_voxels.put(next_vox)
 
-
         print "Outside vertices marked"
-        #now all outside vertices are marked
+
+        #debug testing
+        border_connection_count = 0
+        for vox in self.iterateVoxels():
+            if vox.exists and not vox.border:
+                num_connected = 0
+                for next_vox in vox.connections:
+                    if (next_vox is not None and 
+                            next_vox.exists and 
+                            next_vox.border):
+                        border_connection_count += 1
+                if num_connected > 1:
+                    test_count += 1
+                    vox.border_connection = True
+        print "Additional border connections: "+str(border_connection_count)
+
+        #another debug
+        total_connection_count = 0
+        num_borders = 0
+        possible_connections = {}
+        for vox in self.iterateVoxels():
+            if vox.exists and vox.border:
+                cur_connection_count = 0
+                for next_vox in vox.connections:
+                    if next_vox is not None and next_vox.border:
+                        cur_connection_count += 1
+                total_connection_count += cur_connection_count
+                if cur_connection_count not in possible_connections:
+                    possible_connections[cur_connection_count] = []
+                possible_connections[cur_connection_count].append(
+                        vox.connections[:])
+                num_borders += 1
+        print ("Average border connections per border voxel: " + 
+               str(float(total_connection_count)/num_borders))
+        config_count = 0
+        for a in possible_connections:
+            for b in possible_connections[a]:
+                config_count += 1
+        print "Number of configurations: "+str(config_count)
+        
+        non_border_count = 0
+        for vox in self.iterateVoxels():
+            if vox.exists and not vox.border:
+                non_border_count += 1
+        print "Number of non-border voxels: "+str(non_border_count)
+
+
+
 
 
 
