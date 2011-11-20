@@ -370,7 +370,7 @@ class ObjLoader(object):
         num_borders = 0
         possible_connections = {}
         for vox in self.iterateVoxels():
-            if vox.exists and vox.border:
+            if vox.exists and (vox.border or vox.border_connection):
                 cur_connection_count = 0
                 for next_vox in vox.connections:
                     if next_vox is not None and next_vox.border:
