@@ -5,6 +5,7 @@ from numpy import *
 from numpy.linalg import *
 from primitives import *
 from aabb import *
+from Queue import Queue
 import sys
 
 class ObjLoader(object):
@@ -120,7 +121,8 @@ class ObjLoader(object):
                 for j in xrange(len(self.voxelized[i])):
                     for k in xrange(len(self.voxelized[i][j])):
                         cur_voxel = self.voxelized[i][j][k]
-                        if cur_voxel.exists:
+                        if cur_voxel.exists and cur_voxel.border:
+                            alpha = 1.0
                             #defining v from the center, and going ccw
                             #for each face starting with the "front" face's
                             #top right vertex
@@ -140,6 +142,10 @@ class ObjLoader(object):
                                            self.voxel_zero)
 
                             #right face (positive x)
+                            glMaterialfv(GL_FRONT_AND_BACK, 
+                                    GL_AMBIENT_AND_DIFFUSE,
+                                    [1.0,0.0,0.0,alpha])
+                            glColor4f(1.0,0.0,0.0,alpha)
                             glNormal3f(1,0,0)
                             glVertex3f(v[5][0], v[5][1], v[5][2])
                             glVertex3f(v[0][0], v[0][1], v[0][2])
@@ -147,6 +153,7 @@ class ObjLoader(object):
                             glVertex3f(v[4][0], v[4][1], v[4][2])
 
                             #left face (negative x)
+                            glColor4f(1.0,0.0,0.0,alpha)
                             glNormal3f(-1,0,0)
                             glVertex3f(v[1][0], v[1][1], v[1][2])
                             glVertex3f(v[6][0], v[6][1], v[6][2])
@@ -154,6 +161,10 @@ class ObjLoader(object):
                             glVertex3f(v[2][0], v[2][1], v[2][2])
 
                             #top face (positive y)
+                            glMaterialfv(GL_FRONT_AND_BACK, 
+                                    GL_AMBIENT_AND_DIFFUSE,
+                                    [0.0,1.0,0.0,alpha])
+                            glColor4f(0.0,1.0,0.0,alpha)
                             glNormal3f(0,1,0)
                             glVertex3f(v[0][0], v[0][1], v[0][2])
                             glVertex3f(v[5][0], v[5][1], v[5][2])
@@ -161,6 +172,7 @@ class ObjLoader(object):
                             glVertex3f(v[1][0], v[1][1], v[1][2])
 
                             #bottom face (negative y)
+                            glColor4f(0.0,1.0,0.0,alpha)
                             glNormal3f(0,-1,0)
                             glVertex3f(v[3][0], v[3][1], v[3][2])
                             glVertex3f(v[2][0], v[2][1], v[2][2])
@@ -168,6 +180,10 @@ class ObjLoader(object):
                             glVertex3f(v[4][0], v[4][1], v[4][2])
 
                             #back face (positive z)
+                            glMaterialfv(GL_FRONT_AND_BACK, 
+                                    GL_AMBIENT_AND_DIFFUSE,
+                                    [0.0,0.0,1.0,alpha])
+                            glColor4f(0.0,0.0,1.0,alpha)
                             glNormal3f(0,0,1)
                             glVertex3f(v[6][0], v[6][1], v[6][2])
                             glVertex3f(v[5][0], v[5][1], v[5][2])
@@ -175,6 +191,7 @@ class ObjLoader(object):
                             glVertex3f(v[7][0], v[7][1], v[7][2])
 
                             #front face (negative z)
+                            glColor4f(0.0,0.0,1.0,alpha)
                             glNormal3f(0,0,-1)
                             glVertex3f(v[0][0], v[0][1], v[0][2])
                             glVertex3f(v[1][0], v[1][1], v[1][2])
@@ -289,15 +306,83 @@ class ObjLoader(object):
                 str(total_iterations)+
                 "... Complete!")
         print "Created voxelized object!"
+        self.findConnections()
+        print "Created voxel connections"
+        self.removeInnerVoxels()
+        print "Removed Inner voxels!"
 
     def removeInnerVoxels(self):
         #Tag the outside voxels, then run modified Kruskal's 
         #to find tree spanning all tagged voxels, traversing paths of least
         #cost through untagged voxels, if need be.
         #Essentially, we want to create an outer shell of voxels.
-        print "unimplemented"
+
+        self.findConnections()
+        outside_voxels = Queue()
+
+        #initialize voxels to unvisited and not outside
+        for vox in self.iterateVoxels():
+            vox.visited = False
+            vox.border = False
+
+        for vox in self.iterateVoxels():
+            #initialize BFS from outside voxels
+            if not vox.exists:
+                outside_voxels.put(vox)
+            #voxels on the boundary faces are defined to be border voxels
+            for connection in vox.connections:
+                if connection is None:
+                    vox.border = True
+        
+        #now find the outside voxels by BFSing and tagging all bordering
+        #non empty voxels as "inside"
+        while not outside_voxels.empty():
+            vox = outside_voxels.get()
+            if not vox.visited:
+                vox.visited = True
+                if vox.exists:
+                    vox.border = True
+                else:
+                    for next_vox in vox.connections:
+                        if next_vox is not None:
+                            outside_voxels.put(next_vox)
+
+
+        print "Outside vertices marked"
+        #now all outside vertices are marked
+
+
+
+
+    def iterateVoxels(self):
+        for i in xrange(len(self.voxelized)):
+            for j in xrange(len(self.voxelized[i])):
+                for k in xrange(len(self.voxelized[i][j])):
+                    yield self.voxelized[i][j][k]
 
     def findConnections(self):
         #Loop through voxels then create pointers from each voxel to its
         #neighbors
-        print "unimplemented"
+        for i in xrange(len(self.voxelized)):
+            for j in xrange(len(self.voxelized[i])):
+                for k in xrange(len(self.voxelized[i][j])):
+                    vox = self.voxelized[i][j][k]
+                    for d in xrange(Directions.POSSIBLE):
+                        if (d == Directions.POSX and
+                                i+1 in self.voxelized):
+                            vox.connections[d] = self.voxelized[i+1][j][k]
+                        elif (d == Directions.POSY and
+                                j+1 in self.voxelized[i]):
+                            vox.connections[d] = self.voxelized[i][j+1][k]
+                        elif (d == Directions.POSZ and
+                                k+1 in self.voxelized[i][j]):
+                            vox.connections[d] = self.voxelized[i][j][k+1]
+                        elif (d == Directions.NEGX and
+                                i-1 in self.voxelized):
+                            vox.connections[d] = self.voxelized[i-1][j][k]
+                        elif (d == Directions.NEGY and
+                                j-1 in self.voxelized[i]):
+                            vox.connections[d] = self.voxelized[i][j-1][k]
+                        elif (d == Directions.NEGZ and
+                                k-1 in self.voxelized[i][j]):
+                            vox.connections[d] = self.voxelized[i][j][k-1]

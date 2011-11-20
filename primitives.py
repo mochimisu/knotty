@@ -18,7 +18,9 @@ class Voxel(object):
         for i in xrange(Directions.POSSIBLE):
             self.connections.append(None)
         self.connected = False
+        self.border = False
         self.pos = array([0,0,0])
+        self.visited = False
 
 class Vertex(object):
     def __init__(self):
