@@ -21,8 +21,9 @@ class Viewport(object):
         self.mouse_pos = array([0,0])
         self.orientation = identity3D()
         self.mouse_mode = "rotate"
-        self.view_voxels = True
+        self.view_voxels = False
         self.view_triangles = False
+        self.view_bar_connections = True
 
 viewport = Viewport()
 #Glut Window #
@@ -39,6 +40,8 @@ def keyPressed(*args):
         viewport.view_voxels = not viewport.view_voxels
     elif args[0] == 'x':
         viewport.view_triangles = not viewport.view_triangles
+    elif args[0] == 'c':
+        viewport.view_bar_connections = not viewport.view_bar_connections
 
 def activeMotion(*args):
 
@@ -118,6 +121,8 @@ def drawScene():
         obj_loader.drawVoxels()
         glDisable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
+    if viewport.view_bar_connections:
+        obj_loader.drawBarConnections()
     if viewport.view_triangles:
         obj_loader.drawTriangles()
 

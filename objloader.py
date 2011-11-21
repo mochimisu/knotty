@@ -6,7 +6,9 @@ from numpy.linalg import *
 from primitives import *
 from aabb import *
 from Queue import Queue
+from knots import *
 import sys
+
 
 class ObjLoader(object):
     obj_class_id = 1
@@ -15,6 +17,7 @@ class ObjLoader(object):
         self.obj_id = ObjLoader.obj_class_id
         self.polygon_list = False
         self.voxel_list = False
+        self.bar_connection_list = False
         self.voxelized = {}
         self.aabb = None
         self.use_xor = False
@@ -108,6 +111,53 @@ class ObjLoader(object):
             glEndList()
             self.polygon_list = True
         glCallList(self.obj_id*10 + 0)
+    
+    def drawBarConnections(self):
+        if not self.bar_connection_list:
+            #populate 3d array for connection resolution
+            knot_prims = {}
+            for i in xrange(len(self.voxelized)):
+                if i not in knot_prims:
+                    knot_prims[i] = {}
+                for j in xrange(len(self.voxelized[i])):
+                    if j not in knot_prims[i]:
+                        knot_prims[i][j] = {}
+                    for k in xrange(len(self.voxelized[i][j])):
+                        if k not in knot_prims[i][j]:
+                            knot_prims[i][j][k] = {}
+                        knot_prims[i][j][k] = None
+            #populate 3d arary with border voxels
+            for vox in self.iterateVoxels():
+                if vox.exists and (vox.border or vox.border_connection):
+                    bar_prim = BarKnot()
+                    knot_prims[vox.pos[0]][vox.pos[1]][vox.pos[2]] = bar_prim
+            #resolve connections
+            for vox in self.iterateVoxels():
+                if vox.exists and (vox.border or vox.border_connection):
+                    bar_prim = knot_prims[vox.pos[0]][vox.pos[1]][vox.pos[2]]
+                    if bar_prim is not None:
+                        for d in xrange(Directions.POSSIBLE):
+                            if vox.connections[d] is not None:
+                                bar_prim.connections[d] = knot_prims[
+                                        vox.connections[d].pos[0]][
+                                        vox.connections[d].pos[1]][
+                                        vox.connections[d].pos[2]]
+            #draw stuff
+            glNewList((self.obj_id*10)+2, GL_COMPILE)
+            for i in xrange(len(knot_prims)):
+                for j in xrange(len(knot_prims[i])):
+                    for k in xrange(len(knot_prims[i][j])):
+                        if knot_prims[i][j][k] is not None:
+                            knot_prims[i][j][k].draw(((array([i,j,k])+
+                                                       array([0.5,0.5,0]))*
+                                                      self.voxel_dimension+
+                                                      self.voxel_zero),
+                                                     self.voxel_dimension*0.5)
+            glEndList()
+            self.bar_connection_list = True
+        glCallList(self.obj_id*10+2)
+
+
 
     def drawVoxels(self):
         if not self.voxel_list:
