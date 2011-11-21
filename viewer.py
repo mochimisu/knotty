@@ -11,6 +11,7 @@ from OpenGL.GLU import *
 from numpy import *
 from numpy.linalg import *
 from objloader import *
+from outersurface import *
 import sys
 import argparse
 
@@ -21,6 +22,7 @@ class Viewport(object):
         self.mouse_pos = array([0,0])
         self.orientation = identity3D()
         self.mouse_mode = "rotate"
+        self.view_surface = False
         self.view_voxels = False
         self.view_triangles = False
         self.view_bar_connections = True
@@ -29,6 +31,7 @@ viewport = Viewport()
 #Glut Window #
 window = 0 
 obj_loader = None
+outer_surface = None
 
 def keyPressed(*args):
     #Escape key is from the a
@@ -36,9 +39,11 @@ def keyPressed(*args):
     if args[0] == ESCAPE:
         glutDestroyWindow(window)
         sys.exit()
-    elif args[0] == 'z':
-        viewport.view_voxels = not viewport.view_voxels
+    elif args[0] == 'c':
+        viewport.view_surface = not viewport.view_surface
     elif args[0] == 'x':
+        viewport.view_voxels = not viewport.view_voxels
+    elif args[0] == 'z':
         viewport.view_triangles = not viewport.view_triangles
     elif args[0] == 'c':
         viewport.view_bar_connections = not viewport.view_bar_connections
@@ -125,6 +130,8 @@ def drawScene():
         obj_loader.drawBarConnections()
     if viewport.view_triangles:
         obj_loader.drawTriangles()
+    if viewport.view_surface:
+        outer_surface.drawSurface()
 
 
     glutSwapBuffers()
@@ -133,6 +140,8 @@ def main():
     global viewport
     global window
     global obj_loader
+    global outer_surface
+    
     parser = argparse.ArgumentParser(description="Knotify some OBJs.")
     parser.add_argument("object_file", metavar ="obj", default="teapot.obj")
     parser.add_argument("--xor", dest="use_xor", action="store_const",
@@ -159,6 +168,8 @@ def main():
     obj_loader.use_xor = args.use_xor
     obj_loader.load(args.object_file)
     obj_loader.voxelize(50)
+    outer_surface = OuterSurface(obj_loader)
+    outer_surface.generate()
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
