@@ -112,7 +112,12 @@ def drawScene():
 
     glMultMatrixd(viewport.orientation)
     if viewport.view_voxels:
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE)
+        glDisable(GL_DEPTH_TEST)
         obj_loader.drawVoxels()
+        glDisable(GL_BLEND)
+        glEnable(GL_DEPTH_TEST)
     if viewport.view_triangles:
         obj_loader.drawTriangles()
 
