@@ -12,6 +12,7 @@ class OuterSurface(object):
         self.surface_faces = {}
         self.obj_id = objloader.obj_id
         self.surface_list = False
+        self.knots1_list = False
         self.obj_loader = objloader
     
     def generate(self):
@@ -196,3 +197,73 @@ class OuterSurface(object):
             glEndList()
             self.surface_list = True
         glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_OUTER_SURFACE)
+        
+    def drawKnots1(self):
+        if not self.knots1_list:
+            direction_dict = {Directions.POSX: (1, 0, 0),
+                              Directions.POSY: (0, 1, 0),
+                              Directions.POSZ: (0, 0, 1),
+                              Directions.NEGX: (-1, 0, 0),
+                              Directions.NEGY: (0, -1, 0),
+                              Directions.NEGZ: (0, 0, -1),
+                              }
+            
+            glNewList((self.obj_id * GL_LIST_TOTAL) + GL_LIST_KNOTS_1,
+                      GL_COMPILE)
+            glPushMatrix()
+            glMultMatrixd(self.obj_loader.voxelTransformation())
+            
+            glBegin(GL_LINES)
+            
+            for face, dir in self.surface_faces.items():
+                dir = direction_dict[dir]
+                glNormal3f(dir[0], dir[1], dir[2])
+                
+                x, y, z = face
+                
+                if type(x) == float:
+                    x = int(x - dir[0]*0.5)
+                    sign = 0.2 * (((x + y + z) % 2) - 0.5)
+                    
+                    glVertex3f(x + (0.5 + sign)*dir[0], y, z)
+                    glVertex3f(x + 0.5*dir[0], y-0.5, z)
+                    glVertex3f(x + (0.5 + sign)*dir[0] + sign*0.1, y, z)
+                    glVertex3f(x + 0.5*dir[0] + sign*0.1, y+0.5, z)
+                    
+                    glVertex3f(x + (0.5 - sign)*dir[0], y, z)
+                    glVertex3f(x + 0.5*dir[0], y, z-0.5)
+                    glVertex3f(x + (0.5 - sign)*dir[0], y, z)
+                    glVertex3f(x + 0.5*dir[0], y, z+0.5)
+                elif type(y) == float:
+                    y = int(y - dir[1]*0.5)
+                    sign = 0.2 * (((x + y + z) % 2) - 0.5)
+                    
+                    glVertex3f(x, y + (0.5 + sign)*dir[1], z)
+                    glVertex3f(x, y + 0.5*dir[1], z-0.5)
+                    glVertex3f(x, y + (0.5 + sign)*dir[1], z)
+                    glVertex3f(x, y + 0.5*dir[1], z+0.5)
+                    
+                    glVertex3f(x, y + (0.5 - sign)*dir[1], z)
+                    glVertex3f(x-0.5, y + 0.5*dir[1], z)
+                    glVertex3f(x, y + (0.5 - sign)*dir[1], z)
+                    glVertex3f(x+0.5, y + 0.5*dir[1], z)
+                else:
+                    z = int(z - dir[2]*0.5)
+                    sign = 0.2 * (((x + y + z) % 2) - 0.5)
+                    
+                    glVertex3f(x, y, z + (0.5 + sign)*dir[2])
+                    glVertex3f(x-0.5, y, z + 0.5*dir[2])
+                    glVertex3f(x, y, z + (0.5 + sign)*dir[2])
+                    glVertex3f(x+0.5, y, z + 0.5*dir[2])
+                    
+                    glVertex3f(x, y, z + (0.5 - sign)*dir[2])
+                    glVertex3f(x, y-0.5, z + 0.5*dir[2])
+                    glVertex3f(x, y, z + (0.5 - sign)*dir[2])
+                    glVertex3f(x, y+0.5, z + 0.5*dir[2])
+            
+            glEnd()
+            
+            glPopMatrix()
+            glEndList()
+            self.knots1_list = True
+        glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_KNOTS_1)

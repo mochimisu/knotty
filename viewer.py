@@ -22,7 +22,8 @@ class Viewport(object):
         self.mouse_pos = array([0,0])
         self.orientation = identity3D()
         self.mouse_mode = "rotate"
-        self.view_surface = True
+        self.view_knots1 = True
+        self.view_surface = False
         self.view_voxels = False
         self.view_triangles = False
         self.view_bar_connections = False
@@ -39,6 +40,8 @@ def keyPressed(*args):
     if args[0] == ESCAPE:
         glutDestroyWindow(window)
         sys.exit()
+    elif args[0] == '5':
+        viewport.view_knots1 = not viewport.view_knots1
     elif args[0] == '4':
         viewport.view_surface = not viewport.view_surface
     elif args[0] == '3':
@@ -133,6 +136,8 @@ def drawScene():
         obj_loader.drawTriangles()
     if viewport.view_surface:
         outer_surface.drawSurface()
+    if viewport.view_knots1:
+        outer_surface.drawKnots1()
 
 
     glutSwapBuffers()
