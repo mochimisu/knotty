@@ -187,14 +187,6 @@ class ObjLoader(object):
                                  array([i+0.5, j+0.5, k+0.5]), 
                                  array([i-0.5, j+0.5, k+0.5]), 
                                  array([i-0.5, j-0.5, k+0.5]) ] 
-                            #scale the coordinates to the voxel dimensions
-                            #and appropriately offset the shape
-                            """
-                            for vert in xrange(len(v)):
-                                v[vert] = (((v[vert]+array([0.5,0.5,0]))*
-                                            self.voxel_dimension)+
-                                           self.voxel_zero)
-                            """
 
                             #right face (positive x)
                             glMaterialfv(GL_FRONT_AND_BACK, 
