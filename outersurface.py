@@ -12,6 +12,7 @@ class OuterSurface(object):
         self.surface_faces = {}
         self.obj_id = objloader.obj_id
         self.surface_list = False
+        self.obj_loader = objloader
     
     def generate(self):
         """
@@ -163,7 +164,9 @@ class OuterSurface(object):
             y_offset = -(y_min + y_max)/2
             z_offset = -(z_min + z_max)/2
             
-            glNewList((self.obj_id * 10) + 2, GL_COMPILE)
+            glNewList((self.obj_id * 10) + 3, GL_COMPILE)
+            glPushMatrix()
+            glMultMatrixd(self.obj_loader.voxelTransformation())
             glBegin(GL_QUADS)
             
             for face, dir in self.surface_faces.items():
@@ -216,7 +219,8 @@ class OuterSurface(object):
                         glVertex3f(x-0.5, y-0.5, z)
             
             glEnd()
+            glPopMatrix()
             glEndList()
             self.surface_list = True
-        glCallList(self.obj_id * 10 + 2)
+        glCallList(self.obj_id * 10 + 3)
         

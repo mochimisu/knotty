@@ -22,8 +22,8 @@ class Viewport(object):
         self.mouse_pos = array([0,0])
         self.orientation = identity3D()
         self.mouse_mode = "rotate"
-        self.view_surface = False
-        self.view_voxels = True
+        self.view_surface = True
+        self.view_voxels = False
         self.view_triangles = False
         self.view_bar_connections = False
 
@@ -45,7 +45,7 @@ def keyPressed(*args):
         viewport.view_voxels = not viewport.view_voxels
     elif args[0] == 'z':
         viewport.view_triangles = not viewport.view_triangles
-    elif args[0] == 'c':
+    elif args[0] == 'v':
         viewport.view_bar_connections = not viewport.view_bar_connections
 
 def activeMotion(*args):
@@ -119,6 +119,7 @@ def drawScene():
     glTranslatef(0,0,-5)
 
     glMultMatrixd(viewport.orientation)
+    glColor4f(1,1,1,1)
     if viewport.view_voxels:
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE)
