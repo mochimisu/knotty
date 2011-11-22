@@ -12,6 +12,7 @@ class OuterSurface(object):
         self.surface_faces = {}
         self.obj_id = objloader.obj_id
         self.surface_list = False
+        self.obj_loader = objloader
     
     def generate(self):
         """
@@ -144,27 +145,10 @@ class OuterSurface(object):
                               Directions.NEGZ: (0, 0, -1),
                               }
             
-            x_min = float("inf")
-            x_max = float("-inf")
-            y_min = float("inf")
-            y_max = float("-inf")
-            z_min = float("inf")
-            z_max = float("-inf")
-            for face in self.surface_faces:
-                x, y, z = face
-                x_min = min(x_min, x)
-                x_max = max(x_max, x)
-                y_min = min(y_min, y)
-                y_max = max(y_max, y)
-                z_min = min(z_min, z)
-                z_max = max(z_max, z)
-                
-            x_offset = -(x_min + x_max)/2
-            y_offset = -(y_min + y_max)/2
-            z_offset = -(z_min + z_max)/2
-            
             glNewList((self.obj_id * GL_LIST_TOTAL) + GL_LIST_OUTER_SURFACE,
                       GL_COMPILE)
+            glPushMatrix()
+            glMultMatrixd(self.obj_loader.voxelTransformation())
             glBegin(GL_QUADS)
             
             for face, dir in self.surface_faces.items():
@@ -174,9 +158,6 @@ class OuterSurface(object):
                 x, y, z = face
                 
                 if type(x) == float:
-                    x += x_offset
-                    y += y_offset
-                    z += z_offset
                     if dir[0] > 0:
                         glVertex3f(x, y-0.5, z-0.5)
                         glVertex3f(x, y+0.5, z-0.5)
@@ -188,9 +169,6 @@ class OuterSurface(object):
                         glVertex3f(x, y+0.5, z-0.5)
                         glVertex3f(x, y-0.5, z-0.5)
                 elif type(y) == float:
-                    x += x_offset
-                    y += y_offset
-                    z += z_offset
                     if dir[1] > 0:
                         glVertex3f(x-0.5, y, z-0.5)
                         glVertex3f(x-0.5, y, z+0.5)
@@ -202,9 +180,6 @@ class OuterSurface(object):
                         glVertex3f(x-0.5, y, z+0.5)
                         glVertex3f(x-0.5, y, z-0.5)
                 else:
-                    x += x_offset
-                    y += y_offset
-                    z += z_offset
                     if dir[2] > 0:
                         glVertex3f(x-0.5, y-0.5, z)
                         glVertex3f(x-0.5, y+0.5, z)
@@ -217,6 +192,7 @@ class OuterSurface(object):
                         glVertex3f(x-0.5, y-0.5, z)
             
             glEnd()
+            glPopMatrix()
             glEndList()
             self.surface_list = True
         glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_OUTER_SURFACE)
