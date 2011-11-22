@@ -163,7 +163,8 @@ class OuterSurface(object):
             y_offset = -(y_min + y_max)/2
             z_offset = -(z_min + z_max)/2
             
-            glNewList((self.obj_id * 10) + 2, GL_COMPILE)
+            glNewList((self.obj_id * GL_LIST_TOTAL) + GL_LIST_OUTER_SURFACE,
+                      GL_COMPILE)
             glBegin(GL_QUADS)
             
             for face, dir in self.surface_faces.items():
@@ -218,5 +219,7 @@ class OuterSurface(object):
             glEnd()
             glEndList()
             self.surface_list = True
-        glCallList(self.obj_id * 10 + 2)
+        glPushMatrix()
+        glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_OUTER_SURFACE)
+        glPopMatrix()
         

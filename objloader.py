@@ -7,6 +7,7 @@ from primitives import *
 from aabb import *
 from Queue import Queue
 from knots import *
+from consts import *
 import sys
 
 
@@ -101,7 +102,7 @@ class ObjLoader(object):
 
     def drawTriangles(self):
         if not self.polygon_list:
-            glNewList((self.obj_id*10)+0, GL_COMPILE)
+            glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_OBJ, GL_COMPILE)
             glBegin(GL_TRIANGLES)
             for face in self.faces:
                 for v in face.vertices:
@@ -110,7 +111,7 @@ class ObjLoader(object):
             glEnd()
             glEndList()
             self.polygon_list = True
-        glCallList(self.obj_id*10 + 0)
+        glCallList(self.obj_id*GL_LIST_TOTAL + GL_LIST_OBJ)
     
     def drawBarConnections(self):
         if not self.bar_connection_list:
@@ -143,7 +144,7 @@ class ObjLoader(object):
                                         vox.connections[d].pos[1]][
                                         vox.connections[d].pos[2]]
             #draw stuff
-            glNewList((self.obj_id*10)+2, GL_COMPILE)
+            glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_BARS, GL_COMPILE)
             for i in xrange(len(knot_prims)):
                 for j in xrange(len(knot_prims[i])):
                     for k in xrange(len(knot_prims[i][j])):
@@ -155,13 +156,13 @@ class ObjLoader(object):
                                                      self.voxel_dimension*0.5)
             glEndList()
             self.bar_connection_list = True
-        glCallList(self.obj_id*10+2)
+        glCallList(self.obj_id*GL_LIST_TOTAL + GL_LIST_BARS)
 
 
 
     def drawVoxels(self):
         if not self.voxel_list:
-            glNewList((self.obj_id*10)+1, GL_COMPILE)
+            glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_VOXELS, GL_COMPILE)
             glBegin(GL_QUADS)
             total_iter = (len(self.voxelized) * 
                     len(self.voxelized[0]) * 
@@ -258,7 +259,7 @@ class ObjLoader(object):
             glEnd()
             glEndList()
             self.voxel_list = True
-        glCallList(self.obj_id*10 + 1)
+        glCallList(self.obj_id*GL_LIST_TOTAL + GL_LIST_VOXELS)
 
 
 

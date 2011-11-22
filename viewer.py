@@ -39,14 +39,14 @@ def keyPressed(*args):
     if args[0] == ESCAPE:
         glutDestroyWindow(window)
         sys.exit()
-    elif args[0] == 'c':
+    elif args[0] == '4':
         viewport.view_surface = not viewport.view_surface
-    elif args[0] == 'x':
-        viewport.view_voxels = not viewport.view_voxels
-    elif args[0] == 'z':
-        viewport.view_triangles = not viewport.view_triangles
-    elif args[0] == 'c':
+    elif args[0] == '3':
         viewport.view_bar_connections = not viewport.view_bar_connections
+    elif args[0] == '2':
+        viewport.view_voxels = not viewport.view_voxels
+    elif args[0] == '1':
+        viewport.view_triangles = not viewport.view_triangles
 
 def activeMotion(*args):
 
@@ -66,12 +66,12 @@ def activeMotion(*args):
                     scaling3D(array([1+scale_factor,
                         1+scale_factor,
                         1+scale_factor])))
-        """
+        
         #doesn't work correctly
         elif viewport.mouse_mode == "pan":
             viewport.orientation = (viewport.orientation * 
-                    translation3D(array([diff[0], diff[1], 0])))
-        """
+                    translation3D(array([diff[0], -diff[1], 0])).transpose())
+        
         glutPostRedisplay()
 
 def passiveMotion(*args):
