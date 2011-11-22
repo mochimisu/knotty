@@ -162,6 +162,8 @@ class ObjLoader(object):
     def drawVoxels(self):
         if not self.voxel_list:
             glNewList((self.obj_id*10)+1, GL_COMPILE)
+            glPushMatrix()
+            glMultMatrixd(self.voxelTransformation())
             glBegin(GL_QUADS)
             total_iter = (len(self.voxelized) * 
                     len(self.voxelized[0]) * 
@@ -187,10 +189,12 @@ class ObjLoader(object):
                                  array([i-0.5, j-0.5, k+0.5]) ] 
                             #scale the coordinates to the voxel dimensions
                             #and appropriately offset the shape
+                            """
                             for vert in xrange(len(v)):
                                 v[vert] = (((v[vert]+array([0.5,0.5,0]))*
                                             self.voxel_dimension)+
                                            self.voxel_zero)
+                            """
 
                             #right face (positive x)
                             glMaterialfv(GL_FRONT_AND_BACK, 
@@ -256,6 +260,7 @@ class ObjLoader(object):
                             ct += 1
                             """
             glEnd()
+            glPopMatrix()
             glEndList()
             self.voxel_list = True
         glCallList(self.obj_id*10 + 1)
@@ -483,3 +488,13 @@ class ObjLoader(object):
                         elif (d == Directions.NEGZ and
                                 k-1 in self.voxelized[i][j]):
                             vox.connections[d] = self.voxelized[i][j][k-1]
+    def voxelTransformation(self):
+        trans = identity3D()
+        trans = trans * translation3D(array([0.5,0.5,0]))
+        trans = trans * scaling3D(array([self.voxel_dimension,
+                                         self.voxel_dimension,
+                                         self.voxel_dimension]))
+        trans = trans * translation3D(self.voxel_zero)
+        return trans
+
+

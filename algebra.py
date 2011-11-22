@@ -42,7 +42,7 @@ def scaling3D(scale_vector):
                     [0, 0, 0, 1] ])
 
 def translation3D(trans_vec):
-    return matrix([ [1, 0, 0, trans_vec[0]],
-                    [0, 1, 0, trans_vec[1]],
-                    [0, 0, 1, trans_vec[2]],
-                    [0, 0, 0, 1] ])
+    return matrix([ [1, 0, 0, 0],
+                    [0, 1, 0, 0],
+                    [0, 0, 1, 0],
+                    [trans_vec[0], trans_vec[1], trans_vec[2], 1] ])

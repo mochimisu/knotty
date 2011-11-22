@@ -52,7 +52,7 @@ class OuterSurface(object):
             dir = face_dir[face]
             self.surface_faces[face] = dir
             
-            print "Added face %s to surface faces" % str(face)
+            #print "Added face %s to surface faces" % str(face)
             
             new_surface_faces = set()
             

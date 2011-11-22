@@ -23,9 +23,9 @@ class Viewport(object):
         self.orientation = identity3D()
         self.mouse_mode = "rotate"
         self.view_surface = False
-        self.view_voxels = False
+        self.view_voxels = True
         self.view_triangles = False
-        self.view_bar_connections = True
+        self.view_bar_connections = False
 
 viewport = Viewport()
 #Glut Window #
