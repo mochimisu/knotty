@@ -52,7 +52,7 @@ class OuterSurface(object):
             dir = face_dir[face]
             self.surface_faces[face] = dir
             
-            print "Added face %s to surface faces" % str(face)
+            #print "Added face %s to surface faces" % str(face)
             
             new_surface_faces = set()
             
@@ -219,7 +219,4 @@ class OuterSurface(object):
             glEnd()
             glEndList()
             self.surface_list = True
-        glPushMatrix()
         glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_OUTER_SURFACE)
-        glPopMatrix()
-        
