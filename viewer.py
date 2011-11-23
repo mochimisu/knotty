@@ -192,6 +192,7 @@ def main():
     glutIdleFunc(drawScene)
     glutKeyboardFunc(keyPressed)
     glutMotionFunc(activeMotion)
+    glutReshapeFunc(resizeScene)
     glutPassiveMotionFunc(passiveMotion)
     glutMouseFunc(mousePressed)
 
