@@ -381,8 +381,8 @@ class ObjLoader(object):
         max_dist_dim = max(distance[0], distance[1], distance[2])
         cube_dimension = float(max_dist_dim)/resolution
         voxel_span = distance/cube_dimension
-        voxel_span = [int(voxel_span[0]+1), int(voxel_span[1]+1), 
-                int(voxel_span[2]+1)]
+        voxel_span = [int(voxel_span[0]+1.5), int(voxel_span[1]+1.5), 
+                int(voxel_span[2]+1.5)]
 
         self.voxel_dimension = cube_dimension
         self.voxel_zero = min_vertex_pos
