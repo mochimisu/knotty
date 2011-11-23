@@ -23,9 +23,105 @@ class ObjLoader(object):
         self.voxelized = {}
         self.aabb = None
         self.use_xor = False
+        self.voxel_zero = array([0,0,0])
+        self.voxel_dimension = 1
         ObjLoader.obj_class_id = ObjLoader.obj_class_id + 1
 
-    def load(self, filename):
+    def saveVox(self, filename):
+        dimensions = [len(self.voxelized), 
+                      len(self.voxelized[0]), 
+                      len(self.voxelized[0][0])]
+        with open(filename,"w") as f:
+            f.write("knottyvox version 1\n")
+            f.write(str(dimensions[0])+","+
+                    str(dimensions[1])+","+
+                    str(dimensions[2])+","+
+                    str(self.voxel_dimension)+","+
+                    str(self.voxel_zero[0])+","+
+                    str(self.voxel_zero[1])+","+
+                    str(self.voxel_zero[2])+"\n")
+            for i in xrange(len(self.voxelized)):
+                for j in xrange(len(self.voxelized[i])):
+                    for k in xrange(len(self.voxelized[i][j])):
+                        cur_vox = self.voxelized[i][j][k]
+                        if cur_vox.exists:
+                            f.write("1")
+                        else:
+                            f.write("0")
+            f.write("\n")
+            f.close()
+        print(filename + " saved successfully!")
+
+    def loadVoxCheckMeta(self, filename, resolution):
+        try:
+            with open(filename) as f:
+                version_line = f.readline().rstrip("\n")
+                meta_line = f.readline().rstrip("\n")
+                f.close()
+                version_split = version_line.split(" ")
+                meta_split = meta_line.split(",")
+                if (version_split[0] != "knottyvox" or
+                    version_split[1] != "version" or
+                    version_split[2] != "1"):
+                    print "Invalid file"
+                    return False
+
+                dimensions = [int(meta_split[0]), 
+                              int(meta_split[1]), 
+                              int(meta_split[2])]
+                if max(dimensions) != resolution:
+                    print "Different resolutions, remaking file"
+                    return False
+                return True
+        except IOError as e:
+            print "Voxel file not cached yet"
+            return False
+    
+    def loadVox(self, filename):
+        with open(filename) as f:
+            version_line = f.readline().rstrip("\n")
+            meta_line = f.readline().rstrip("\n")
+            vox = f.readline().rstrip("\n")
+            f.close()
+
+            version_split = version_line.split(" ")
+            meta_split = meta_line.split(",")
+
+            if (version_split[0] != "knottyvox" or
+                version_split[1] != "version" or
+                version_split[2] != "1"):
+                print "Invalid file"
+                return 
+
+            dimensions = [int(meta_split[0]), 
+                          int(meta_split[1]), 
+                          int(meta_split[2])]
+            voxel_size = float(meta_split[3])
+            voxel_zero = [float(meta_split[4]),
+                          float(meta_split[5]),
+                          float(meta_split[6])]
+            
+            self.voxel_dimension = array(voxel_size)
+            self.voxel_zero = array(voxel_zero)
+
+            self.voxelized = {}
+
+            count = 0
+            for i in xrange(dimensions[0]):
+                if i not in self.voxelized:
+                    self.voxelized[i] = {}
+                for j in xrange(dimensions[1]):
+                    if j not in self.voxelized[i]:
+                        self.voxelized[i][j] = {}
+                    for k in xrange(dimensions[2]):
+                        if k not in self.voxelized[i][j]:
+                            self.voxelized[i][j][k] = Voxel()
+                            self.voxelized[i][j][k].pos = array([i,j,k])
+                        self.voxelized[i][j][k].exists = (vox[count] == "1")
+                        count += 1
+            print(filename + " loaded successfully!")
+
+    def loadObj(self, filename):
         self.filename = filename
         vertices = {}
         with open(filename) as f:
@@ -175,8 +271,8 @@ class ObjLoader(object):
                 for j in xrange(len(self.voxelized[i])):
                     for k in xrange(len(self.voxelized[i][j])):
                         cur_voxel = self.voxelized[i][j][k]
-                        if cur_voxel.exists and (cur_voxel.border or 
-                                                 cur_voxel.border_connection):
+                        if cur_voxel.exists:# and (cur_voxel.border or 
+                                            #     cur_voxel.border_connection):
                             alpha = 1.0
                             #defining v from the center, and going ccw
                             #for each face starting with the "front" face's
