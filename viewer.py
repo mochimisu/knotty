@@ -153,14 +153,19 @@ def main():
     global outer_surface
     
     parser = argparse.ArgumentParser(description="Knotify some OBJs.")
-    parser.add_argument("object_file", metavar ="obj", default="teapot.obj")
+    parser.add_argument("object_file", metavar ="obj", default="teapot.obj",
+            help="OBJ or KVOX file")
     parser.add_argument("--xor", dest="use_xor", action="store_const",
             const=True, default=False, 
             help="Use XOR instead of Winding Number")
     parser.add_argument("-b", "--boundaries", dest="use_boundaries", 
-        action="store_const", const=True, default=False)
+        action="store_const", const=True, default=False,
+        help=("Use only boundary voxels in voxelization (more expensive, but"+ 
+              " can handle non-nice objects)"))
     parser.add_argument("-r", "--resolution", dest="resolution",
-            nargs='?', type=int, default=50) 
+            nargs='?', type=int, default=50, help="Voxelization resolution") 
+    parser.add_argument("-dsv", "--dont_save_vox", dest="save_vox",
+            action="store_const", const=False, default=True)
     args = parser.parse_args()
 
     print "Inside-outside test:",
@@ -180,11 +185,26 @@ def main():
     glutInitWindowPosition(0,0)
     window = glutCreateWindow("Knotty (in progress)")
 
+    split_filename = args.object_file.split(".")
+    filename_no_suffix = split_filename[0]
+    filename_suffix = split_filename[1]
+
     obj_loader = ObjLoader()
     obj_loader.use_xor = args.use_xor
     obj_loader.use_boundaries = args.use_boundaries
-    obj_loader.load(args.object_file)
-    obj_loader.voxelize(args.resolution)
+    if filename_suffix == "obj":
+        if obj_loader.loadVoxCheckMeta(filename_no_suffix+".kvox", 
+                args.resolution):
+            obj_loader.loadVox(filename_no_suffix+".kvox")
+        else:
+            obj_loader.loadObj(args.object_file)
+            obj_loader.voxelize(args.resolution)
+        if args.save_vox:
+            obj_loader.saveVox(filename_no_suffix+".kvox")
+    elif filename_suffix == "kvox":
+        obj_loader.loadVox(args.object_file)
+    else:
+        print "Invalid file specified"
     outer_surface = OuterSurface(obj_loader)
     outer_surface.generate()
 
