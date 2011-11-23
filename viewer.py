@@ -123,6 +123,10 @@ def drawScene():
 
     glMultMatrixd(viewport.orientation)
     glColor4f(1,1,1,1)
+    glMaterialfv(GL_FRONT_AND_BACK, 
+            GL_AMBIENT_AND_DIFFUSE,
+            [1.0,1.0,1.0,1.0])
+
     if viewport.view_voxels:
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE)
@@ -153,10 +157,16 @@ def main():
     parser.add_argument("--xor", dest="use_xor", action="store_const",
             const=True, default=False, 
             help="Use XOR instead of Winding Number")
+    parser.add_argument("-b", "--boundaries", dest="use_boundaries", 
+        action="store_const", const=True, default=False)
+    parser.add_argument("-r", "--resolution", dest="resolution",
+            nargs='?', type=int, default=50) 
     args = parser.parse_args()
 
-    print "Inside-outside test: ",
-    if args.use_xor:
+    print "Inside-outside test:",
+    if args.use_boundaries:
+        print "Boundaries only"
+    elif args.use_xor:
         print "XOR"
     else:
         print "Winding Number"
@@ -172,8 +182,9 @@ def main():
 
     obj_loader = ObjLoader()
     obj_loader.use_xor = args.use_xor
+    obj_loader.use_boundaries = args.use_boundaries
     obj_loader.load(args.object_file)
-    obj_loader.voxelize(50)
+    obj_loader.voxelize(args.resolution)
     outer_surface = OuterSurface(obj_loader)
     outer_surface.generate()
 

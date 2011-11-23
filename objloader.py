@@ -19,6 +19,7 @@ class ObjLoader(object):
         self.polygon_list = False
         self.voxel_list = False
         self.bar_connection_list = False
+        self.use_boundaries = False
         self.voxelized = {}
         self.aabb = None
         self.use_xor = False
@@ -283,8 +284,8 @@ class ObjLoader(object):
         max_dist_dim = max(distance[0], distance[1], distance[2])
         cube_dimension = float(max_dist_dim)/resolution
         voxel_span = distance/cube_dimension
-        voxel_span = [int(voxel_span[0]+0.5), int(voxel_span[1]+0.5), 
-                int(voxel_span[2]+0.5)]
+        voxel_span = [int(voxel_span[0]+1), int(voxel_span[1]+1), 
+                int(voxel_span[2]+1)]
 
         self.voxel_dimension = cube_dimension
         self.voxel_zero = min_vertex_pos
@@ -292,7 +293,100 @@ class ObjLoader(object):
         print ("Creating voxelized object with resolution: ("+
                 str(voxel_span[0])+","+str(voxel_span[1])+","+
                 str(voxel_span[2])+")")
+        if self.use_boundaries:
+            self.boundaryVoxelization(voxel_span)
+        else:
+            self.filledVoxelization(voxel_span)
 
+        print "Created voxelized object!"
+        self.findConnections()
+        print "Created voxel connections"
+        self.removeInnerVoxels()
+        print "Removed Inner voxels!"
+
+    def boundaryVoxelization(self, voxel_span):
+        #For each plane in XYZ, shoot rays and make voxels at intersections
+        
+        #fill array with nonexistant voxels first
+        for i in xrange(0, voxel_span[0]):
+            if i not in self.voxelized:
+                self.voxelized[i] = {}
+            for j in xrange(0, voxel_span[1]):
+                if j not in self.voxelized[i]:
+                    self.voxelized[i][j] = {}
+                for k in xrange(0, voxel_span[2]):
+                    if k not in self.voxelized[i][j]:
+                        self.voxelized[i][j][k] = {}
+                    new_vox = Voxel()
+                    new_vox.exists = False
+                    new_vox.pos = array([i, j, k])
+                    self.voxelized[i][j][k] = new_vox
+
+        total_iterations = (voxel_span[0]*voxel_span[1] +
+                            voxel_span[0]*voxel_span[2] +
+                            voxel_span[1]*voxel_span[2])
+        iter_count = 0
+
+
+        #XY
+        for i in xrange(0, voxel_span[0]):
+            for j in xrange(0, voxel_span[1]):
+                center = (array([i+0.5, j+0.5, -0.5])*self.voxel_dimension+
+                        self.voxel_zero)
+                ray_dir = array([0,0,1])
+                inter_ray = Ray(center, ray_dir, 0.01)
+                for prim in self.aabb.relevantPrimitives(inter_ray):
+                    intersection = prim.intersect(inter_ray)
+                    if intersection < float("inf"):
+                        cur_vox = self.voxelized[i][j][int(intersection/
+                                                       self.voxel_dimension)]
+                        cur_vox.exists = True
+                iter_count += 1
+                print ("\rVoxelization: "+
+                    str(iter_count)+"/"+
+                    str(total_iterations)),
+                sys.stdout.flush()
+        
+        #XZ
+        for i in xrange(0, voxel_span[0]):
+            for k in xrange(0, voxel_span[2]):
+                center = (array([i+0.5, -0.5, k+0.5])*self.voxel_dimension+
+                        self.voxel_zero)
+                ray_dir = array([0,1,0])
+                inter_ray = Ray(center, ray_dir, 0.01)
+                for prim in self.aabb.relevantPrimitives(inter_ray):
+                    intersection = prim.intersect(inter_ray)
+                    if intersection < float("inf"):
+                        cur_vox = self.voxelized[i][int(intersection/
+                                                    self.voxel_dimension)][k]
+                        cur_vox.exists = True
+                iter_count += 1
+                print ("\rVoxelization: "+
+                    str(iter_count)+"/"+
+                    str(total_iterations)),
+                sys.stdout.flush()
+
+        #YZ
+        for j in xrange(0, voxel_span[1]):
+            for k in xrange(0, voxel_span[2]):
+                center = (array([-0.5, j+0.5, k+0.5])*self.voxel_dimension+
+                        self.voxel_zero)
+                ray_dir = array([1,0,0])
+                inter_ray = Ray(center, ray_dir, 0.01)
+                for prim in self.aabb.relevantPrimitives(inter_ray):
+                    intersection = prim.intersect(inter_ray)
+                    if intersection < float("inf"):
+                        cur_vox = self.voxelized[int(intersection/
+                                                 self.voxel_dimension)][j][k]
+                        cur_vox.exists = True
+                iter_count += 1
+                print ("\rVoxelization: "+
+                    str(iter_count)+"/"+
+                    str(total_iterations)),
+                sys.stdout.flush()
+        print "... Complete!"
+
+    def filledVoxelization(self, voxel_span):
         #Go through 2D array of x,y and shoot ray in z direction
         total_iterations = voxel_span[0]*voxel_span[1]
         for i in xrange(0, int(voxel_span[0])):
@@ -301,7 +395,7 @@ class ObjLoader(object):
             for j in xrange(0, int(voxel_span[1])):
                 if j not in self.voxelized[i]:
                     self.voxelized[i][j] = {}
-                center = (array([i+0.5, j+0.5, -0.5])*cube_dimension+
+                center = (array([i+0.5, j+0.5, -0.5])*self.voxel_dimension+
                         self.voxel_zero)
                 winding_dir = array([0,0,1])
                 winding_ray = Ray(center, winding_dir, 0.01)
@@ -313,7 +407,7 @@ class ObjLoader(object):
                         intersections.append((intersection
                             ,dot(prim.normal, winding_dir) < 0))
                 intersections = sorted(intersections, key=lambda x:x[0])
-                intersections = map(lambda x: (x[0]/cube_dimension,x[1]), 
+                intersections = map(lambda x: (x[0]/self.voxel_dimension,x[1]), 
                         intersections)
                 if self.use_xor:
                     prev = True
@@ -325,6 +419,7 @@ class ObjLoader(object):
                             "intersections... Not good.")
                 next_intersection = 0
                 winding_number = 0
+                prev_winding = None
                 for k in xrange(0, int(voxel_span[2])):
                     if k not in self.voxelized[i][j]:
                         self.voxelized[i][j][k] = {}
@@ -337,8 +432,8 @@ class ObjLoader(object):
                         next_intersection += 1
                     elif (next_intersection >= len(intersections) and
                             winding_number > 0):
-                        print ("Something went wrong - winding number > 0 "+
-                        "after all intersections... Setting it to 0")
+                        print ("Something went wrong - winding number > 0"+
+                        " after all intersections... Setting it to 0")
                         winding_number = 0
                     new_vox = Voxel()
                     new_vox.exists = (winding_number > 0)
@@ -354,11 +449,7 @@ class ObjLoader(object):
                 str(total_iterations)+"/"+
                 str(total_iterations)+
                 "... Complete!")
-        print "Created voxelized object!"
-        self.findConnections()
-        print "Created voxel connections"
-        self.removeInnerVoxels()
-        print "Removed Inner voxels!"
+
 
     def removeInnerVoxels(self):
         #Tag the outside voxels, then run modified Kruskal's 
