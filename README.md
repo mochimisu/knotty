@@ -21,6 +21,7 @@ CS285 Project - Brandon Wang, Andrew Lee
 		* 3 pass boundary voxels
 * Patterning:
 	* Up and down control points specified
+
 ###Not Done
 * Control points to spline
 * Knot to polygon
