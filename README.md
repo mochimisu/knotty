@@ -14,11 +14,14 @@ CS285 Project - Brandon Wang, Andrew Lee
 	* PyOpenGL working
   * Viewport/quaternion rotation working
 * Voxelization:
-	* Only for "well-behaved" OBJs
-  * Winding Number
-  * Parity/XOR specifiable by user
-
+	* "Well-behaved" OBJs
+    * Winding Number
+    * Parity/XOR
+  * All OBJ
+		* 3 pass boundary voxels
+* Patterning:
+	* Up and down control points specified
 ###Not Done
-* Knot fitting
+* Control points to spline
 * Knot to polygon
 * Polygon to STL
