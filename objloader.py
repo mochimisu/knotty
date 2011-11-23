@@ -192,6 +192,7 @@ class ObjLoader(object):
             v.normal /= v.normal_samples
         print str(len(self.faces))+" faces loaded"
 
+    def createAABBTree(self):
         #now create acceleration structure for voxelization
         self.aabb = createAABBTree(self.faces)
         self.aabb.calculateBoundingSides()

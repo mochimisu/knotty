@@ -163,9 +163,13 @@ def main():
         help=("Use only boundary voxels in voxelization (more expensive, but"+ 
               " can handle non-nice objects)"))
     parser.add_argument("-r", "--resolution", dest="resolution",
-            nargs='?', type=int, default=50, help="Voxelization resolution") 
+            nargs="?", type=int, default=50, help="Voxelization resolution") 
     parser.add_argument("-dsv", "--dont_save_vox", dest="save_vox",
             action="store_const", const=False, default=True)
+    parser.add_argument("--width", dest="width",
+            nargs="?", type=int, default=640, help="Viewport width")
+    parser.add_argument("--height", dest="height",
+            nargs="?", type=int, default=480, help="Viewport height")
     args = parser.parse_args()
 
     print "Inside-outside test:",
@@ -176,8 +180,8 @@ def main():
     else:
         print "Winding Number"
 
-    viewport.w = 640
-    viewport.h = 480
+    viewport.w = args.width
+    viewport.h = args.height
 
     glutInit(sys.argv)
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
@@ -193,11 +197,12 @@ def main():
     obj_loader.use_xor = args.use_xor
     obj_loader.use_boundaries = args.use_boundaries
     if filename_suffix == "obj":
+        obj_loader.loadObj(args.object_file)
         if obj_loader.loadVoxCheckMeta(filename_no_suffix+".kvox", 
                 args.resolution):
             obj_loader.loadVox(filename_no_suffix+".kvox")
         else:
-            obj_loader.loadObj(args.object_file)
+            obj_loader.createAABBTree()
             obj_loader.voxelize(args.resolution)
         if args.save_vox:
             obj_loader.saveVox(filename_no_suffix+".kvox")
