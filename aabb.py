@@ -14,6 +14,14 @@ class BoundingBox(object):
             ray.direction[1] == 0 and 
             ray.direction[2] == 1):
             return self.z_intersect(ray)
+        elif (ray.direction[0] == 0 and
+              ray.direction[1] == 1 and
+              ray.direction[2] == 0):
+            return self.y_intersect(ray)
+        elif (ray.direction[0] == 1 and
+              ray.direction[1] == 0 and
+              ray.direction[2] == 0):
+            return self.x_intersect(ray)
         else:
             return self.normal_intersect(ray)
 
@@ -25,6 +33,26 @@ class BoundingBox(object):
                 return False
         #print "intersect"
         return True
+
+    def y_intersect(self,ray):
+        #ignore ray direction, just consider if ray is shooting in y
+        for i in xrange(0,3,2):
+            if (ray.start[i] > self.bounding_max[i] or 
+                    ray.start[i] < self.bounding_min[i]):
+                return False
+        #print "intersect"
+        return True
+
+    def x_intersect(self,ray):
+        #ignore ray direction, just consider if ray is shooting in x
+        for i in xrange(1,3):
+            if (ray.start[i] > self.bounding_max[i] or 
+                    ray.start[i] < self.bounding_min[i]):
+                return False
+        #print "intersect"
+        return True
+
+
 
     def normal_intersect(self, ray):
         t_min = array([0.0,0.0,0.0])
