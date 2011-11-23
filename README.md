@@ -13,12 +13,15 @@ CS285 Project - Brandon Wang, Andrew Lee
 * Initial OpenGL Code:
 	* PyOpenGL working
   * Viewport/quaternion rotation working
+
 * Voxelization:
 	* "Well-behaved" OBJs
     * Winding Number
     * Parity/XOR
-  * All OBJ
+
+	* All OBJ
 		* 3 pass boundary voxels
+
 * Patterning:
 	* Up and down control points specified
 
