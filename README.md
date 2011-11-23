@@ -15,9 +15,10 @@ CS285 Project - Brandon Wang, Andrew Lee
   * Viewport/quaternion rotation working
 
 * Voxelization:
+
 	* "Well-behaved" OBJs
-    * Winding Number
-    * Parity/XOR
+		* Winding Number
+		* Parity/XOR
 
 	* All OBJ
 		* 3 pass boundary voxels
