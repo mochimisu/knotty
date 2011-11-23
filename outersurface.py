@@ -3,6 +3,8 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from objloader import *
 from primitives import *
+from numpy import *
+import math
 
 class OuterSurface(object):       
     
@@ -208,60 +210,81 @@ class OuterSurface(object):
                               Directions.NEGZ: (0, 0, -1),
                               }
             
+            quad = gluNewQuadric()
+            
+            def drawCylinder(start, end):
+                mid = [float(start[0] + end[0]) / 2,
+                       float(start[1] + end[1]) / 2,
+                       float(start[2] + end[2]) / 2,
+                       ]
+                
+                dir = [float(end[0] - start[0]),
+                       float(end[1] - start[1]),
+                       float(end[2] - start[2]),
+                       ]
+                
+                height = math.sqrt((dir[0])**2 + (dir[1])**2 + (dir[2])**2)
+                axis = cross([0, 0, 1], dir)
+                angle = math.acos(dir[2] / height) * 180.0 / math.pi
+                
+                glPushMatrix()
+                glTranslatef(mid[0], mid[1], mid[2])
+                glRotatef(angle, axis[0], axis[1], axis[2])
+                glTranslatef(0, 0, -height*1.1/2)
+                gluCylinder(quad, 0.1, 0.1, height*1.1, 10, 1)
+                glPopMatrix()
+            
             glNewList((self.obj_id * GL_LIST_TOTAL) + GL_LIST_KNOTS_1,
                       GL_COMPILE)
             glPushMatrix()
             glMultMatrixd(self.obj_loader.voxelTransformation())
-            
-            glBegin(GL_LINES)
+
+            glColor3f(1.0, 0.0, 0.0)
             
             for face, dir in self.surface_faces.items():
                 dir = direction_dict[dir]
-                glNormal3f(dir[0], dir[1], dir[2])
                 
                 x, y, z = face
                 
                 if type(x) == float:
                     x = int(x - dir[0]*0.5)
-                    sign = 0.2 * (((x + y + z) % 2) - 0.5)
+                    sign = 0.3 * (((x + y + z) % 2) - 0.5)
                     
-                    glVertex3f(x + (0.5 + sign)*dir[0], y, z)
-                    glVertex3f(x + 0.5*dir[0], y-0.5, z)
-                    glVertex3f(x + (0.5 + sign)*dir[0] + sign*0.1, y, z)
-                    glVertex3f(x + 0.5*dir[0] + sign*0.1, y+0.5, z)
+                    drawCylinder([x + 0.5*dir[0], y-0.5, z],
+                                 [x + (0.5 + sign)*dir[0], y, z])
+                    drawCylinder([x + 0.5*dir[0], y+0.5, z],
+                                 [x + (0.5 + sign)*dir[0], y, z])
                     
-                    glVertex3f(x + (0.5 - sign)*dir[0], y, z)
-                    glVertex3f(x + 0.5*dir[0], y, z-0.5)
-                    glVertex3f(x + (0.5 - sign)*dir[0], y, z)
-                    glVertex3f(x + 0.5*dir[0], y, z+0.5)
+                    drawCylinder([x + 0.5*dir[0], y, z-0.5],
+                                 [x + (0.5 - sign)*dir[0], y, z])
+                    drawCylinder([x + 0.5*dir[0], y, z+0.5],
+                                 [x + (0.5 - sign)*dir[0], y, z])
                 elif type(y) == float:
                     y = int(y - dir[1]*0.5)
-                    sign = 0.2 * (((x + y + z) % 2) - 0.5)
+                    sign = 0.3 * (((x + y + z) % 2) - 0.5)
                     
-                    glVertex3f(x, y + (0.5 + sign)*dir[1], z)
-                    glVertex3f(x, y + 0.5*dir[1], z-0.5)
-                    glVertex3f(x, y + (0.5 + sign)*dir[1], z)
-                    glVertex3f(x, y + 0.5*dir[1], z+0.5)
+                    drawCylinder([x, y + 0.5*dir[1], z-0.5],
+                                 [x, y + (0.5 + sign)*dir[1], z])
+                    drawCylinder([x, y + 0.5*dir[1], z+0.5],
+                                 [x, y + (0.5 + sign)*dir[1], z])
                     
-                    glVertex3f(x, y + (0.5 - sign)*dir[1], z)
-                    glVertex3f(x-0.5, y + 0.5*dir[1], z)
-                    glVertex3f(x, y + (0.5 - sign)*dir[1], z)
-                    glVertex3f(x+0.5, y + 0.5*dir[1], z)
+                    drawCylinder([x-0.5, y + 0.5*dir[1], z],
+                                 [x, y + (0.5 - sign)*dir[1], z])
+                    drawCylinder([x+0.5, y + 0.5*dir[1], z],
+                                 [x, y + (0.5 - sign)*dir[1], z])
                 else:
                     z = int(z - dir[2]*0.5)
-                    sign = 0.2 * (((x + y + z) % 2) - 0.5)
+                    sign = 0.3 * (((x + y + z) % 2) - 0.5)
                     
-                    glVertex3f(x, y, z + (0.5 + sign)*dir[2])
-                    glVertex3f(x-0.5, y, z + 0.5*dir[2])
-                    glVertex3f(x, y, z + (0.5 + sign)*dir[2])
-                    glVertex3f(x+0.5, y, z + 0.5*dir[2])
+                    drawCylinder([x-0.5, y, z + 0.5*dir[2]],
+                                 [x, y, z + (0.5 + sign)*dir[2]])
+                    drawCylinder([x+0.5, y, z + 0.5*dir[2]],
+                                 [x, y, z + (0.5 + sign)*dir[2]])
                     
-                    glVertex3f(x, y, z + (0.5 - sign)*dir[2])
-                    glVertex3f(x, y-0.5, z + 0.5*dir[2])
-                    glVertex3f(x, y, z + (0.5 - sign)*dir[2])
-                    glVertex3f(x, y+0.5, z + 0.5*dir[2])
-            
-            glEnd()
+                    drawCylinder([x, y-0.5, z + 0.5*dir[2]],
+                                 [x, y, z + (0.5 - sign)*dir[2]])
+                    drawCylinder([x, y+0.5, z + 0.5*dir[2]],
+                                 [x, y, z + (0.5 - sign)*dir[2]])
             
             glPopMatrix()
             glEndList()
