@@ -165,8 +165,10 @@ def main():
               " can handle non-nice objects)"))
     parser.add_argument("-r", "--resolution", dest="resolution",
             nargs="?", type=int, default=50, help="Voxelization resolution") 
-    parser.add_argument("-dsv", "--dont_save_vox", dest="save_vox",
+    parser.add_argument("-d", "--dont_save_vox", dest="save_vox",
             action="store_const", const=False, default=True)
+    parser.add_argument("-f", "--force_new_vox", dest="new_vox",
+            action="store_const", const=True, default=False)
     parser.add_argument("--width", dest="width",
             nargs="?", type=int, default=640, help="Viewport width")
     parser.add_argument("--height", dest="height",
@@ -180,6 +182,8 @@ def main():
         print "XOR"
     else:
         print "Winding Number"
+
+    print "Resolution: "+str(args.resolution)
 
     viewport.w = args.width
     viewport.h = args.height
@@ -199,10 +203,13 @@ def main():
     obj_loader.use_boundaries = args.use_boundaries
     if filename_suffix == "obj":
         obj_loader.loadObj(args.object_file)
-        if obj_loader.loadVoxCheckMeta(filename_no_suffix+".kvox", 
-                args.resolution):
+        if (not args.new_vox and 
+                obj_loader.loadVoxCheckMeta(filename_no_suffix+".kvox", 
+                    args.resolution)):
             obj_loader.loadVox(filename_no_suffix+".kvox")
         else:
+            if args.new_vox:
+                print "Forcing new voxel cache"
             obj_loader.createAABBTree()
             obj_loader.voxelize(args.resolution)
         if args.save_vox:

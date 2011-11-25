@@ -67,7 +67,8 @@ class ObjLoader(object):
                 dimensions = [int(meta_split[0]), 
                               int(meta_split[1]), 
                               int(meta_split[2])]
-                if max(dimensions) != resolution:
+                #+/- 1 for extra voxel given by rounding error
+                if abs(max(dimensions)-resolution) > 1:
                     print "Different resolutions, remaking file"
                     return False
                 return True
