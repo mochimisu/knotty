@@ -194,6 +194,27 @@ def main():
     filename_no_suffix = split_filename[0]
     filename_suffix = split_filename[1]
 
+    obj_loader = ObjLoader()
+    obj_loader.use_xor = args.use_xor
+    obj_loader.use_boundaries = args.use_boundaries
+    if filename_suffix == "obj":
+        obj_loader.loadObj(args.object_file)
+        if obj_loader.loadVoxCheckMeta(filename_no_suffix+".kvox", 
+                args.resolution):
+            obj_loader.loadVox(filename_no_suffix+".kvox")
+        else:
+            obj_loader.createAABBTree()
+            obj_loader.voxelize(args.resolution)
+        if args.save_vox:
+            obj_loader.saveVox(filename_no_suffix+".kvox")
+    elif filename_suffix == "kvox":
+        obj_loader.loadVox(args.object_file)
+    else:
+        print "Invalid file specified"
+    outer_surface = OuterSurface(obj_loader)
+    outer_surface.generate()
+    
+
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
     glutKeyboardFunc(keyPressed)
