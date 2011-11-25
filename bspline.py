@@ -2,12 +2,6 @@ from OpenGL.GL import *
 from numpy import *
 from consts import *
 
-class PathPoint(object):
-    def __init__(self):
-        self.pos = array([0,0,0])
-        self.azimuth = 0
-        self.scale = 0
-
 def lerp(a, b, t):
     return (1-t)*a + t*b
 
