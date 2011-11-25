@@ -1,9 +1,4 @@
-# PyOpenGL test code
-# Referencing CS184 Sp11 C++ Framework code:
-# http://www-inst.eecs.berkeley.edu/~cs184/sp11/
-# not perfect python, but this is just a simple translation to show PyOpenGL
-# (extremely quick and dirty)
-# will turn into object viewer later
+#not a great example of python but will do
 
 from OpenGL.GL import * 
 from OpenGL.GLUT import *
