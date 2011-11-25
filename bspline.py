@@ -30,10 +30,6 @@ class BSpline(object):
         #cubic bezier
         self.degree = 3
 
-        #displaylists
-        self.control_list = False
-        self.polyline_list = False
-
     def sample(self, t):
         if len(self.control_points) == 0:
             return
@@ -87,36 +83,20 @@ class BSpline(object):
                 last_good = sp
 
     def drawControl(self):
-        if not self.control_list:
-            glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_CONTROL, 
-                    GL_COMPILE)
-            glBegin(GL_LINE_STRIP)
-            for p in self.control_points:
-                glVertex3f(p[0], p[1], p[2])
-            glEnd()
-            glEndList()
-            self.control_list = True
-        glCallList(self.obj_id*GL_LIST_TOTAL + GL_LIST_CONTROL)
-
-
+        glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_CONTROL, 
+                GL_COMPILE)
+        glBegin(GL_LINE_STRIP)
+        for p in self.control_points:
+            glVertex3f(p[0], p[1], p[2])
+        glEnd()
 
     def drawPolyline(self):
-        if not self.polyline_list:
-            glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_POLYLINE, 
-                    GL_COMPILE)
-            glBegin(GL_LINE_STRIP)
-            for p in self.polyline:
-                glVertex3f(p[0], p[1], p[2])
-            glEnd()
-            glEndList()
-            self.polyline_list = True
-        glCallList(self.obj_id*GL_LIST_TOTAL + GL_LIST_POLYLINE)
-
-
-
-
-
-
+        glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_POLYLINE, 
+                GL_COMPILE)
+        glBegin(GL_LINE_STRIP)
+        for p in self.polyline:
+            glVertex3f(p[0], p[1], p[2])
+        glEnd()
 
     def sampleForward(self, t, step):
         return self.sample(t+step).pos - sample(t).pos
