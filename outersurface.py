@@ -3,6 +3,7 @@ from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from objloader import *
 from primitives import *
+from knots import *
 from numpy import *
 import math
 
@@ -15,6 +16,7 @@ class OuterSurface(object):
         self.obj_id = objloader.obj_id
         self.surface_list = False
         self.knots1_list = False
+        self.knot = None
         self.obj_loader = objloader
     
     def generate(self):
@@ -137,6 +139,70 @@ class OuterSurface(object):
             _crawlSurface(faces_to_crawl.pop()) 
         
         print "Finished finding outer surface"
+
+    def applyKnots(self):
+        self.knot = Knot()
+
+        direction_dict = {Directions.POSX: (1, 0, 0),
+                          Directions.POSY: (0, 1, 0),
+                          Directions.POSZ: (0, 0, 1),
+                          Directions.NEGX: (-1, 0, 0),
+                          Directions.NEGY: (0, -1, 0),
+                          Directions.NEGZ: (0, 0, -1),
+                          }
+
+        for face, dir in self.surface_faces.items():
+            dir = direction_dict[dir]
+            
+            x, y, z = face
+                
+            if type(x) == float:
+                x = int(x - dir[0]*0.5)
+                sign = 0.3 * (((x + y + z) % 2) - 0.5)
+
+                seq = [(x + 0.5*dir[0], y-0.5, z),
+                       (x + (0.5 + sign)*dir[0], y, z),
+                       (x + 0.5*dir[0], y+0.5, z),
+                       ]
+                self.knot.addSequence(seq)
+
+                seq = [(x + 0.5*dir[0], y, z-0.5),
+                       (x + (0.5 - sign)*dir[0], y, z),
+                       (x + 0.5*dir[0], y, z+0.5),
+                       ]
+                self.knot.addSequence(seq)
+            elif type(y) == float:
+                y = int(y - dir[1]*0.5)
+                sign = 0.3 * (((x + y + z) % 2) - 0.5)
+                
+                seq = [(x, y + 0.5*dir[1], z-0.5),
+                       (x, y + (0.5 + sign)*dir[1], z),
+                       (x, y + 0.5*dir[1], z+0.5),
+                       ]
+                self.knot.addSequence(seq)
+ 
+                seq = [(x-0.5, y + 0.5*dir[1], z),
+                       (x, y + (0.5 - sign)*dir[1], z),
+                       (x+0.5, y + 0.5*dir[1], z),
+                       ]
+                self.knot.addSequence(seq)
+            else:
+                z = int(z - dir[2]*0.5)
+                sign = 0.3 * (((x + y + z) % 2) - 0.5)
+                
+                seq = [(x-0.5, y, z + 0.5*dir[2]),
+                       (x, y, z + (0.5 + sign)*dir[2]),
+                       (x+0.5, y, z + 0.5*dir[2]),
+                       ]
+                self.knot.addSequence(seq)
+                
+                seq = [(x, y-0.5, z + 0.5*dir[2]),
+                       (x, y, z + (0.5 - sign)*dir[2]),
+                       (x, y+0.5, z + 0.5*dir[2]),
+                       ]
+                self.knot.addSequence(seq)
+        for a, b in self.knot.open_loops.items():
+            print a, ':', b
         
     def drawSurface(self):
         if not self.surface_list:
@@ -201,15 +267,10 @@ class OuterSurface(object):
         glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_OUTER_SURFACE)
         
     def drawKnots1(self):
+        if not self.knot:
+            return
+
         if not self.knots1_list:
-            direction_dict = {Directions.POSX: (1, 0, 0),
-                              Directions.POSY: (0, 1, 0),
-                              Directions.POSZ: (0, 0, 1),
-                              Directions.NEGX: (-1, 0, 0),
-                              Directions.NEGY: (0, -1, 0),
-                              Directions.NEGZ: (0, 0, -1),
-                              }
-            
             quad = gluNewQuadric()
             
             def drawCylinder(start, end):
@@ -233,7 +294,7 @@ class OuterSurface(object):
                 glTranslatef(0, 0, -height*1.1/2)
                 gluCylinder(quad, 0.1, 0.1, height*1.1, 10, 1)
                 glPopMatrix()
-            
+
             glNewList((self.obj_id * GL_LIST_TOTAL) + GL_LIST_KNOTS_1,
                       GL_COMPILE)
             glPushMatrix()
@@ -241,52 +302,14 @@ class OuterSurface(object):
 
             glColor3f(1.0, 0.0, 0.0)
             
-            for face, dir in self.surface_faces.items():
-                dir = direction_dict[dir]
-                
-                x, y, z = face
-                
-                if type(x) == float:
-                    x = int(x - dir[0]*0.5)
-                    sign = 0.3 * (((x + y + z) % 2) - 0.5)
-                    
-                    drawCylinder([x + 0.5*dir[0], y-0.5, z],
-                                 [x + (0.5 + sign)*dir[0], y, z])
-                    drawCylinder([x + 0.5*dir[0], y+0.5, z],
-                                 [x + (0.5 + sign)*dir[0], y, z])
-                    
-                    drawCylinder([x + 0.5*dir[0], y, z-0.5],
-                                 [x + (0.5 - sign)*dir[0], y, z])
-                    drawCylinder([x + 0.5*dir[0], y, z+0.5],
-                                 [x + (0.5 - sign)*dir[0], y, z])
-                elif type(y) == float:
-                    y = int(y - dir[1]*0.5)
-                    sign = 0.3 * (((x + y + z) % 2) - 0.5)
-                    
-                    drawCylinder([x, y + 0.5*dir[1], z-0.5],
-                                 [x, y + (0.5 + sign)*dir[1], z])
-                    drawCylinder([x, y + 0.5*dir[1], z+0.5],
-                                 [x, y + (0.5 + sign)*dir[1], z])
-                    
-                    drawCylinder([x-0.5, y + 0.5*dir[1], z],
-                                 [x, y + (0.5 - sign)*dir[1], z])
-                    drawCylinder([x+0.5, y + 0.5*dir[1], z],
-                                 [x, y + (0.5 - sign)*dir[1], z])
-                else:
-                    z = int(z - dir[2]*0.5)
-                    sign = 0.3 * (((x + y + z) % 2) - 0.5)
-                    
-                    drawCylinder([x-0.5, y, z + 0.5*dir[2]],
-                                 [x, y, z + (0.5 + sign)*dir[2]])
-                    drawCylinder([x+0.5, y, z + 0.5*dir[2]],
-                                 [x, y, z + (0.5 + sign)*dir[2]])
-                    
-                    drawCylinder([x, y-0.5, z + 0.5*dir[2]],
-                                 [x, y, z + (0.5 - sign)*dir[2]])
-                    drawCylinder([x, y+0.5, z + 0.5*dir[2]],
-                                 [x, y, z + (0.5 - sign)*dir[2]])
+            for loop in self.knot.closed_loops:
+                prev = loop[0]
+                for cur in loop[1:]:
+                    drawCylinder(prev, cur)
+                    prev = cur
             
             glPopMatrix()
             glEndList()
             self.knots1_list = True
+
         glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_KNOTS_1)

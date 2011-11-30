@@ -22,8 +22,8 @@ class Viewport(object):
         self.mouse_pos = array([0,0])
         self.orientation = identity3D()
         self.mouse_mode = "rotate"
-        self.view_knots1 = True
-        self.view_surface = False
+        self.view_knots1 = False
+        self.view_surface = True
         self.view_voxels = False
         self.view_triangles = False
         self.view_bar_connections = False
@@ -212,6 +212,7 @@ def main():
         print "Invalid file specified"
     outer_surface = OuterSurface(obj_loader)
     outer_surface.generate()
+    outer_surface.applyKnots()
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
