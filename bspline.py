@@ -193,7 +193,8 @@ class BSpline(object):
                     vn = v % len(self.cross_section)
 
                     new_point0 = SplinePoint()
-                    tan0 = old_slice[(vn+1)%len(self.cross_section)] - old_slice[vn]
+                    tan0 = (old_slice[(vn+1)%len(self.cross_section)] - 
+                            old_slice[vn])
                     tan0 /= norm(tan0)
                     print tan0
                     print old_dir
@@ -202,7 +203,8 @@ class BSpline(object):
                     self.vertices.append(new_point0)
 
                     new_point1 = SplinePoint()
-                    tan1 = new_slice[(vn+1)%len(self.cross_section)] - new_slice[vn]
+                    tan1 = (new_slice[(vn+1)%len(self.cross_section)] - 
+                            new_slice[vn])
                     tan1 /= norm(tan1)
                     new_point1.normal = -(cross(tan1, direction))
                     new_point1.point = new_slice[vn]
