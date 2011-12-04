@@ -113,7 +113,6 @@ def drawScene():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
-    #example code
     glLoadIdentity();
     glTranslatef(0,0,-5)
 
@@ -123,6 +122,12 @@ def drawScene():
             GL_AMBIENT_AND_DIFFUSE,
             [1.0,1.0,1.0,1.0])
 
+    """
+    bspline.drawPolyline()
+    bspline.drawControl()
+    bspline.drawSpline()
+
+    """
     if viewport.view_voxels:
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE)
@@ -146,6 +151,24 @@ def main():
     global window
     global obj_loader
     global outer_surface
+
+    """
+    #bspline test code
+    global bspline
+    bspline = BSpline()
+    bspline.control_points.append(array([0,0,0]))
+    bspline.control_points.append(array([0,1,0]))
+    bspline.control_points.append(array([1,0,0]))
+    bspline.control_points.append(array([2,0,0]))
+    bspline.control_points.append(array([3,3,0]))
+    bspline.generatePolyline()
+    bspline.cross_section.append(array([0.1,0.1,0]))
+    bspline.cross_section.append(array([-0.1,0.1,0]))
+    bspline.cross_section.append(array([-0.1,-0.1,0]))
+    bspline.cross_section.append(array([0.1,-0.1,0]))
+    bspline.generateSweepShape(1)
+    """
+
 
     
     parser = argparse.ArgumentParser(description="Knotify some OBJs.")
