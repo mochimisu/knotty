@@ -40,13 +40,6 @@ class Knot(object):
                 loop.reverse()
             del self.open_loops[seq[0]]
             loop.extend(seq[1:])
-            '''
-            if loop[0] == loop[-1]:
-                del self.open_loops[loop[0]]
-                self.closed_loops.append(loop)
-            else:
-                self.open_loops[seq[-1]] = loop
-            '''
             self.open_loops[seq[-1]] = loop
         else:
             if seq[0] == seq[-1]:
