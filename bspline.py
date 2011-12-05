@@ -4,30 +4,6 @@ from numpy.linalg import *
 from algebra import *
 from consts import *
 
-def lerp(a, b, t):
-    return (float)(1-t)*a + t*b
-
-def dist2(a,b):
-    assert(len(a) == len(b))
-    res = 0.0
-    for i in xrange(len(a)):
-        minus = a[i]-b[i]
-        res += minus*minus
-    return res
-
-def length2(a):
-    res = 0.0
-    for i in xrange(len(a)):
-        res += a[i]*a[i]
-    return res
-
-def clamp(x, mini, maxi):
-    if x > maxi:
-        x = maxi
-    if x < mini:
-        x = mini
-    return x
-
 def advanceFrame(xi, xi1, ti, si, ri, ti1):
     v1 = xi1 - xi
     c1 = dot(v1, v1)

@@ -9,6 +9,30 @@ def ortho_proj(vec4):
 def ortho_extend(vec3,w):
     return array([vec3[0], vec3[1], vec3[2], w])
 
+def lerp(a, b, t):
+    return (float)(1-t)*a + t*b
+
+def dist2(a,b):
+    assert(len(a) == len(b))
+    res = 0.0
+    for i in xrange(len(a)):
+        minus = a[i]-b[i]
+        res += minus*minus
+    return res
+
+def length2(a):
+    res = 0.0
+    for i in xrange(len(a)):
+        res += a[i]*a[i]
+    return res
+
+def clamp(x, mini, maxi):
+    if x > maxi:
+        x = maxi
+    if x < mini:
+        x = mini
+    return x
+
 def rotation2D(center, angle_deg):
     angle_rad = angle_deg * pi / 180.0
     c = cos(angle_rad)
