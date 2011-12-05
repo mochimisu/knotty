@@ -22,7 +22,6 @@ class Viewport(object):
         self.view_surface = False
         self.view_voxels = False
         self.view_triangles = False
-        self.view_bar_connections = False
 
 viewport = Viewport()
 #Glut Window #
@@ -36,12 +35,10 @@ def keyPressed(*args):
     if args[0] == ESCAPE:
         glutDestroyWindow(window)
         sys.exit()
-    elif args[0] == '5':
-        viewport.view_knots1 = not viewport.view_knots1
     elif args[0] == '4':
-        viewport.view_surface = not viewport.view_surface
+        viewport.view_knots1 = not viewport.view_knots1
     elif args[0] == '3':
-        viewport.view_bar_connections = not viewport.view_bar_connections
+        viewport.view_surface = not viewport.view_surface
     elif args[0] == '2':
         viewport.view_voxels = not viewport.view_voxels
     elif args[0] == '1':
@@ -135,8 +132,6 @@ def drawScene():
         obj_loader.drawVoxels()
         glDisable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
-    if viewport.view_bar_connections:
-        obj_loader.drawBarConnections()
     if viewport.view_triangles:
         obj_loader.drawTriangles()
     if viewport.view_surface:

@@ -7,6 +7,7 @@ from primitives import *
 from aabb import *
 from Queue import Queue
 from consts import *
+from gllists import *
 import sys
 
 
@@ -15,8 +16,8 @@ class ObjLoader(object):
     def __init__(self):
         self.faces = []
         self.obj_id = ObjLoader.obj_class_id
-        self.polygon_list = False
-        self.voxel_list = False
+        self.polygon_list = None
+        self.voxel_list = None
         self.use_boundaries = False
         self.voxelized = {}
         self.aabb = None
@@ -198,8 +199,9 @@ class ObjLoader(object):
         print "AABB Tree created"
 
     def drawTriangles(self):
-        if not self.polygon_list:
-            glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_OBJ, GL_COMPILE)
+        if self.polygon_list is None:
+            self.polygon_list = uniqueGlListId()
+            glNewList(self.polygon_list, GL_COMPILE)
             glBegin(GL_TRIANGLES)
             for face in self.faces:
                 for v in face.vertices:
@@ -207,12 +209,12 @@ class ObjLoader(object):
                     glVertex3f(v.position[0], v.position[1], v.position[2])
             glEnd()
             glEndList()
-            self.polygon_list = True
-        glCallList(self.obj_id*GL_LIST_TOTAL + GL_LIST_OBJ)
+        glCallList(self.polygon_list)
 
     def drawVoxels(self):
-        if not self.voxel_list:
-            glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_VOXELS, GL_COMPILE)
+        if self.voxel_list is None:
+            self.voxel_list = uniqueGlListId()
+            glNewList(self.voxel_list, GL_COMPILE)
             glPushMatrix()
             glMultMatrixd(self.voxelTransformation())
             glBegin(GL_QUADS)
@@ -304,8 +306,7 @@ class ObjLoader(object):
             glEnd()
             glPopMatrix()
             glEndList()
-            self.voxel_list = True
-        glCallList(self.obj_id*GL_LIST_TOTAL + GL_LIST_VOXELS)
+        glCallList(self.voxel_list)
 
 
 

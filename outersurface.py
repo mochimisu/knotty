@@ -13,8 +13,8 @@ class OuterSurface(object):
         self.root_face = None
         self.surface_faces = {}
         self.obj_id = objloader.obj_id
-        self.surface_list = False
-        self.knots1_list = False
+        self.surface_list = None
+        self.knots1_list = None
         self.obj_loader = objloader
     
     def generate(self):
@@ -139,7 +139,8 @@ class OuterSurface(object):
         print "Finished finding outer surface"
         
     def drawSurface(self):
-        if not self.surface_list:
+        if self.surface_list is None:
+            self.surface_list = uniqueGlListId()
             direction_dict = {Directions.POSX: (1, 0, 0),
                               Directions.POSY: (0, 1, 0),
                               Directions.POSZ: (0, 0, 1),
@@ -148,8 +149,7 @@ class OuterSurface(object):
                               Directions.NEGZ: (0, 0, -1),
                               }
             
-            glNewList((self.obj_id * GL_LIST_TOTAL) + GL_LIST_OUTER_SURFACE,
-                      GL_COMPILE)
+            glNewList(self.surface_list, GL_COMPILE)
             glPushMatrix()
             glMultMatrixd(self.obj_loader.voxelTransformation())
             glBegin(GL_QUADS)
@@ -197,11 +197,11 @@ class OuterSurface(object):
             glEnd()
             glPopMatrix()
             glEndList()
-            self.surface_list = True
-        glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_OUTER_SURFACE)
+        glCallList(self.surface_list)
         
     def drawKnots1(self):
-        if not self.knots1_list:
+        if self.knots1_list is None:
+            self.knots1_list = uniqueGlListId()
             direction_dict = {Directions.POSX: (1, 0, 0),
                               Directions.POSY: (0, 1, 0),
                               Directions.POSZ: (0, 0, 1),
@@ -234,7 +234,7 @@ class OuterSurface(object):
                 gluCylinder(quad, 0.1, 0.1, height*1.1, 10, 1)
                 glPopMatrix()
             
-            glNewList((self.obj_id * GL_LIST_TOTAL) + GL_LIST_KNOTS_1,
+            glNewList(self.knots1_list,
                       GL_COMPILE)
             glPushMatrix()
             glMultMatrixd(self.obj_loader.voxelTransformation())
@@ -288,5 +288,4 @@ class OuterSurface(object):
             
             glPopMatrix()
             glEndList()
-            self.knots1_list = True
-        glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_KNOTS_1)
+        glCallList(self.knots1_list)

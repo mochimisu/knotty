@@ -4,15 +4,8 @@ from numpy.linalg import *
 from algebra import *
 from consts import *
 
-class SplinePoint(object):
-    def __init__(self):
-        self.point = None
-        self.azimuth = 0
-        self.scale = 1
-        self.normal = array([1,0.0])
-
 def lerp(a, b, t):
-    return (1-t)*a + t*b
+    return (float)(1-t)*a + t*b
 
 def dist2(a,b):
     assert(len(a) == len(b))
@@ -47,6 +40,13 @@ def advanceFrame(xi, xi1, ti, si, ri, ti1):
     if c2 == 0:
         return ri
     return ri_l - (2/c2) * (v2*ri_l) * v2
+
+class SplinePoint(object):
+    def __init__(self):
+        self.point = None
+        self.azimuth = 0
+        self.scale = 1
+        self.normal = array([1,0.0])
 
 class BSpline(object):
     def __init__(self,obj_loader=None):
