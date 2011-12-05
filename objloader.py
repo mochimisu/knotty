@@ -6,8 +6,8 @@ from numpy.linalg import *
 from primitives import *
 from aabb import *
 from Queue import Queue
-from knots import *
 from consts import *
+from gllists import *
 import sys
 
 
@@ -16,9 +16,8 @@ class ObjLoader(object):
     def __init__(self):
         self.faces = []
         self.obj_id = ObjLoader.obj_class_id
-        self.polygon_list = False
-        self.voxel_list = False
-        self.bar_connection_list = False
+        self.polygon_list = None
+        self.voxel_list = None
         self.use_boundaries = False
         self.voxelized = {}
         self.aabb = None
@@ -69,7 +68,8 @@ class ObjLoader(object):
                 dimensions = [int(meta_split[0]), 
                               int(meta_split[1]), 
                               int(meta_split[2])]
-                if max(dimensions) != resolution:
+                #+/- 1 for extra voxel given by rounding error
+                if abs(max(dimensions)-resolution) > 1:
                     print "Different resolutions, remaking file"
                     return False
                 return True
@@ -199,8 +199,9 @@ class ObjLoader(object):
         print "AABB Tree created"
 
     def drawTriangles(self):
-        if not self.polygon_list:
-            glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_OBJ, GL_COMPILE)
+        if self.polygon_list is None:
+            self.polygon_list = uniqueGlListId()
+            glNewList(self.polygon_list, GL_COMPILE)
             glBegin(GL_TRIANGLES)
             for face in self.faces:
                 for v in face.vertices:
@@ -208,59 +209,12 @@ class ObjLoader(object):
                     glVertex3f(v.position[0], v.position[1], v.position[2])
             glEnd()
             glEndList()
-            self.polygon_list = True
-        glCallList(self.obj_id*GL_LIST_TOTAL + GL_LIST_OBJ)
-    
-    def drawBarConnections(self):
-        if not self.bar_connection_list:
-            #populate 3d array for connection resolution
-            knot_prims = {}
-            for i in xrange(len(self.voxelized)):
-                if i not in knot_prims:
-                    knot_prims[i] = {}
-                for j in xrange(len(self.voxelized[i])):
-                    if j not in knot_prims[i]:
-                        knot_prims[i][j] = {}
-                    for k in xrange(len(self.voxelized[i][j])):
-                        if k not in knot_prims[i][j]:
-                            knot_prims[i][j][k] = {}
-                        knot_prims[i][j][k] = None
-            #populate 3d arary with border voxels
-            for vox in self.iterateVoxels():
-                if vox.exists and (vox.border or vox.border_connection):
-                    bar_prim = BarKnot()
-                    knot_prims[vox.pos[0]][vox.pos[1]][vox.pos[2]] = bar_prim
-            #resolve connections
-            for vox in self.iterateVoxels():
-                if vox.exists and (vox.border or vox.border_connection):
-                    bar_prim = knot_prims[vox.pos[0]][vox.pos[1]][vox.pos[2]]
-                    if bar_prim is not None:
-                        for d in xrange(Directions.POSSIBLE):
-                            if vox.connections[d] is not None:
-                                bar_prim.connections[d] = knot_prims[
-                                        vox.connections[d].pos[0]][
-                                        vox.connections[d].pos[1]][
-                                        vox.connections[d].pos[2]]
-            #draw stuff
-            glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_BARS, GL_COMPILE)
-            for i in xrange(len(knot_prims)):
-                for j in xrange(len(knot_prims[i])):
-                    for k in xrange(len(knot_prims[i][j])):
-                        if knot_prims[i][j][k] is not None:
-                            knot_prims[i][j][k].draw(((array([i,j,k])+
-                                                       array([0.5,0.5,0]))*
-                                                      self.voxel_dimension+
-                                                      self.voxel_zero),
-                                                     self.voxel_dimension*0.5)
-            glEndList()
-            self.bar_connection_list = True
-        glCallList(self.obj_id*GL_LIST_TOTAL + GL_LIST_BARS)
-
-
+        glCallList(self.polygon_list)
 
     def drawVoxels(self):
-        if not self.voxel_list:
-            glNewList((self.obj_id*GL_LIST_TOTAL) + GL_LIST_VOXELS, GL_COMPILE)
+        if self.voxel_list is None:
+            self.voxel_list = uniqueGlListId()
+            glNewList(self.voxel_list, GL_COMPILE)
             glPushMatrix()
             glMultMatrixd(self.voxelTransformation())
             glBegin(GL_QUADS)
@@ -272,8 +226,7 @@ class ObjLoader(object):
                 for j in xrange(len(self.voxelized[i])):
                     for k in xrange(len(self.voxelized[i][j])):
                         cur_voxel = self.voxelized[i][j][k]
-                        if cur_voxel.exists:# and (cur_voxel.border or 
-                                            #     cur_voxel.border_connection):
+                        if cur_voxel.exists: 
                             alpha = 1.0
                             #defining v from the center, and going ccw
                             #for each face starting with the "front" face's
@@ -353,9 +306,7 @@ class ObjLoader(object):
             glEnd()
             glPopMatrix()
             glEndList()
-            self.voxel_list = True
-        glCallList(self.obj_id*GL_LIST_TOTAL + GL_LIST_VOXELS)
-
+        glCallList(self.voxel_list)
 
 
 
@@ -396,10 +347,6 @@ class ObjLoader(object):
             self.filledVoxelization(voxel_span)
 
         print "Created voxelized object!"
-        self.findConnections()
-        print "Created voxel connections"
-        self.removeInnerVoxels()
-        print "Removed Inner voxels!"
 
     def boundaryVoxelization(self, voxel_span):
         #For each plane in XYZ, shoot rays and make voxels at intersections
@@ -548,127 +495,12 @@ class ObjLoader(object):
                 "... Complete!")
 
 
-    def removeInnerVoxels(self):
-        #Tag the outside voxels, then run modified Kruskal's 
-        #to find tree spanning all tagged voxels, traversing paths of least
-        #cost through untagged voxels, if need be.
-        #Essentially, we want to create an outer shell of voxels.
-
-        self.findConnections()
-        outside_voxels = Queue()
-
-        #initialize voxels to unvisited and not outside
-        for vox in self.iterateVoxels():
-            vox.visited = False
-            vox.border = False
-
-        for vox in self.iterateVoxels():
-            #initialize BFS from outside voxels
-            if not vox.exists:
-                outside_voxels.put(vox)
-            #voxels on the boundary faces are defined to be border voxels
-            for connection in vox.connections:
-                if connection is None:
-                    vox.border = True
-        
-        #now find the outside voxels by BFSing and tagging all bordering
-        #non empty voxels as "inside"
-        while not outside_voxels.empty():
-            vox = outside_voxels.get()
-            if not vox.visited:
-                vox.visited = True
-                if vox.exists:
-                    vox.border = True
-                else:
-                    for next_vox in vox.connections:
-                        if next_vox is not None:
-                            outside_voxels.put(next_vox)
-
-        print "Outside vertices marked"
-
-        #debug testing
-        border_connection_count = 0
-        for vox in self.iterateVoxels():
-            if vox.exists and not vox.border:
-                num_connected = 0
-                for next_vox in vox.connections:
-                    if (next_vox is not None and 
-                            next_vox.exists and 
-                            next_vox.border):
-                        border_connection_count += 1
-                if num_connected > 1:
-                    test_count += 1
-                    vox.border_connection = True
-        print "Additional border connections: "+str(border_connection_count)
-
-        #another debug
-        total_connection_count = 0
-        num_borders = 0
-        possible_connections = {}
-        for vox in self.iterateVoxels():
-            if vox.exists and (vox.border or vox.border_connection):
-                cur_connection_count = 0
-                for next_vox in vox.connections:
-                    if next_vox is not None and next_vox.border:
-                        cur_connection_count += 1
-                total_connection_count += cur_connection_count
-                if cur_connection_count not in possible_connections:
-                    possible_connections[cur_connection_count] = []
-                possible_connections[cur_connection_count].append(
-                        vox.connections[:])
-                num_borders += 1
-        print ("Average border connections per border voxel: " + 
-               str(float(total_connection_count)/num_borders))
-        config_count = 0
-        for a in possible_connections:
-            for b in possible_connections[a]:
-                config_count += 1
-        print "Number of configurations: "+str(config_count)
-        
-        non_border_count = 0
-        for vox in self.iterateVoxels():
-            if vox.exists and not vox.border:
-                non_border_count += 1
-        print "Number of non-border voxels: "+str(non_border_count)
-
-
-
-
-
-
-
     def iterateVoxels(self):
         for i in xrange(len(self.voxelized)):
             for j in xrange(len(self.voxelized[i])):
                 for k in xrange(len(self.voxelized[i][j])):
                     yield self.voxelized[i][j][k]
 
-    def findConnections(self):
-        #Loop through voxels then create pointers from each voxel to its
-        #neighbors
-        for i in xrange(len(self.voxelized)):
-            for j in xrange(len(self.voxelized[i])):
-                for k in xrange(len(self.voxelized[i][j])):
-                    vox = self.voxelized[i][j][k]
-                    for d in xrange(Directions.POSSIBLE):
-                        if (d == Directions.POSX and
-                                i+1 in self.voxelized):
-                            vox.connections[d] = self.voxelized[i+1][j][k]
-                        elif (d == Directions.POSY and
-                                j+1 in self.voxelized[i]):
-                            vox.connections[d] = self.voxelized[i][j+1][k]
-                        elif (d == Directions.POSZ and
-                                k+1 in self.voxelized[i][j]):
-                            vox.connections[d] = self.voxelized[i][j][k+1]
-                        elif (d == Directions.NEGX and
-                                i-1 in self.voxelized):
-                            vox.connections[d] = self.voxelized[i-1][j][k]
-                        elif (d == Directions.NEGY and
-                                j-1 in self.voxelized[i]):
-                            vox.connections[d] = self.voxelized[i][j-1][k]
-                        elif (d == Directions.NEGZ and
-                                k-1 in self.voxelized[i][j]):
-                            vox.connections[d] = self.voxelized[i][j][k-1]
     def voxelTransformation(self):
         trans = identity3D()
         trans = trans * translation3D(array([0.5,0.5,0]))

@@ -1,9 +1,4 @@
-# PyOpenGL test code
-# Referencing CS184 Sp11 C++ Framework code:
-# http://www-inst.eecs.berkeley.edu/~cs184/sp11/
-# not perfect python, but this is just a simple translation to show PyOpenGL
-# (extremely quick and dirty)
-# will turn into object viewer later
+#not a great example of python but will do
 
 from OpenGL.GL import * 
 from OpenGL.GLUT import *
@@ -12,6 +7,7 @@ from numpy import *
 from numpy.linalg import *
 from objloader import *
 from outersurface import *
+from bspline import *
 import sys
 import argparse
 
@@ -26,7 +22,6 @@ class Viewport(object):
         self.view_surface = True
         self.view_voxels = False
         self.view_triangles = False
-        self.view_bar_connections = False
 
 viewport = Viewport()
 #Glut Window #
@@ -40,12 +35,10 @@ def keyPressed(*args):
     if args[0] == ESCAPE:
         glutDestroyWindow(window)
         sys.exit()
-    elif args[0] == '5':
-        viewport.view_knots1 = not viewport.view_knots1
     elif args[0] == '4':
-        viewport.view_surface = not viewport.view_surface
+        viewport.view_knots1 = not viewport.view_knots1
     elif args[0] == '3':
-        viewport.view_bar_connections = not viewport.view_bar_connections
+        viewport.view_surface = not viewport.view_surface
     elif args[0] == '2':
         viewport.view_voxels = not viewport.view_voxels
     elif args[0] == '1':
@@ -117,7 +110,6 @@ def drawScene():
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
-    #example code
     glLoadIdentity();
     glTranslatef(0,0,-5)
 
@@ -127,6 +119,12 @@ def drawScene():
             GL_AMBIENT_AND_DIFFUSE,
             [1.0,1.0,1.0,1.0])
 
+    """
+    bspline.drawPolyline()
+    bspline.drawControl()
+    bspline.drawSpline()
+    """
+
     if viewport.view_voxels:
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE)
@@ -134,15 +132,12 @@ def drawScene():
         obj_loader.drawVoxels()
         glDisable(GL_BLEND)
         glEnable(GL_DEPTH_TEST)
-    if viewport.view_bar_connections:
-        obj_loader.drawBarConnections()
     if viewport.view_triangles:
         obj_loader.drawTriangles()
     if viewport.view_surface:
         outer_surface.drawSurface()
     if viewport.view_knots1:
         outer_surface.drawKnots1()
-
 
     glutSwapBuffers()
 
@@ -151,6 +146,36 @@ def main():
     global window
     global obj_loader
     global outer_surface
+        
+    """
+    #bspline test code
+    global bspline
+    global bspline2
+    bspline = BSpline()
+    bspline.control_points.append(array([0,0,0]))
+    bspline.control_points.append(array([0,1,0]))
+    bspline.control_points.append(array([1,0,0]))
+    bspline.control_points.append(array([2,0,0]))
+    bspline.control_points.append(array([3,3,0]))
+    bspline.generatePolyline()
+    #bspline.cross_section.append(array([0.1,0.1,0]))
+    #bspline.cross_section.append(array([-0.1,0.1,0]))
+    #bspline.cross_section.append(array([-0.1,-0.1,0]))
+    #bspline.cross_section.append(array([0.1,-0.1,0]))
+    bspline2 = BSpline()
+    bspline2.control_points.append(array([1,1,0]))
+    bspline2.control_points.append(array([-1,1,0]))
+    bspline2.control_points.append(array([-1,-1,0]))
+    bspline2.control_points.append(array([1,-1,0]))
+    bspline2.control_points.append(array([1,1,0]))
+    bspline2.control_points.append(array([-1,1,0]))
+    bspline2.control_points.append(array([-1,-1,0]))
+    bspline.setBsplineCrossSection(bspline2)
+    
+    bspline.generateSweepShape(0.1)
+    """
+
+
     
     parser = argparse.ArgumentParser(description="Knotify some OBJs.")
     parser.add_argument("object_file", metavar ="obj", default="teapot.obj",
@@ -164,8 +189,10 @@ def main():
               " can handle non-nice objects)"))
     parser.add_argument("-r", "--resolution", dest="resolution",
             nargs="?", type=int, default=50, help="Voxelization resolution") 
-    parser.add_argument("-dsv", "--dont_save_vox", dest="save_vox",
+    parser.add_argument("-d", "--dont_save_vox", dest="save_vox",
             action="store_const", const=False, default=True)
+    parser.add_argument("-f", "--force_new_vox", dest="new_vox",
+            action="store_const", const=True, default=False)
     parser.add_argument("--width", dest="width",
             nargs="?", type=int, default=640, help="Viewport width")
     parser.add_argument("--height", dest="height",
@@ -179,6 +206,8 @@ def main():
         print "XOR"
     else:
         print "Winding Number"
+
+    print "Resolution: "+str(args.resolution)
 
     viewport.w = args.width
     viewport.h = args.height
@@ -198,10 +227,13 @@ def main():
     obj_loader.use_boundaries = args.use_boundaries
     if filename_suffix == "obj":
         obj_loader.loadObj(args.object_file)
-        if obj_loader.loadVoxCheckMeta(filename_no_suffix+".kvox", 
-                args.resolution):
+        if (not args.new_vox and 
+                obj_loader.loadVoxCheckMeta(filename_no_suffix+".kvox", 
+                    args.resolution)):
             obj_loader.loadVox(filename_no_suffix+".kvox")
         else:
+            if args.new_vox:
+                print "Forcing new voxel cache"
             obj_loader.createAABBTree()
             obj_loader.voxelize(args.resolution)
         if args.save_vox:

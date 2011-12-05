@@ -205,7 +205,8 @@ class OuterSurface(object):
             print a, ':', b
         
     def drawSurface(self):
-        if not self.surface_list:
+        if self.surface_list is None:
+            self.surface_list = uniqueGlListId()
             direction_dict = {Directions.POSX: (1, 0, 0),
                               Directions.POSY: (0, 1, 0),
                               Directions.POSZ: (0, 0, 1),
@@ -214,8 +215,7 @@ class OuterSurface(object):
                               Directions.NEGZ: (0, 0, -1),
                               }
             
-            glNewList((self.obj_id * GL_LIST_TOTAL) + GL_LIST_OUTER_SURFACE,
-                      GL_COMPILE)
+            glNewList(self.surface_list, GL_COMPILE)
             glPushMatrix()
             glMultMatrixd(self.obj_loader.voxelTransformation())
             glBegin(GL_QUADS)
@@ -263,8 +263,7 @@ class OuterSurface(object):
             glEnd()
             glPopMatrix()
             glEndList()
-            self.surface_list = True
-        glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_OUTER_SURFACE)
+        glCallList(self.surface_list)
         
     def drawKnots1(self):
         if not self.knot:

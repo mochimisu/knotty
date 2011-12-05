@@ -97,3 +97,4 @@ class Ray(object):
         self.start = start
         self.direction = direction
         self.min_t = min_t
+
