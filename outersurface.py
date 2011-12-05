@@ -324,10 +324,7 @@ class OuterSurface(object):
             control_spline.control_points = [array([1,1,0]),
                                              array([-1,1,0]),
                                              array([-1,-1,0]),
-                                             array([1,-1,0]),
-                                             array([1,1,0]),
-                                             array([-1,1,0]),
-                                             array([-1,-1,0])]
+                                             array([1,-1,0])]
 
             self.knots_spline_list = uniqueGlListId()
 
@@ -345,6 +342,8 @@ class OuterSurface(object):
                 loop_spline.setBsplineCrossSection(control_spline)
                 loop_spline.generateSweepShape(0.1)
                 loop_spline.drawSpline()
+
+
 
             glPopMatrix()
             glEndList()

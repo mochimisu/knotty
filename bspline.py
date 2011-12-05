@@ -32,7 +32,7 @@ class BSpline(object):
         self.global_twist = 0
         self.global_azimuth = 0
         self.num_samples = 20
-        self.closed = False
+        self.closed = True
         self.cross_section = []
 
         self.vertices = []
