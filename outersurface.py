@@ -14,8 +14,8 @@ class OuterSurface(object):
         self.root_face = None
         self.surface_faces = {}
         self.obj_id = objloader.obj_id
-        self.surface_list = False
-        self.knots1_list = False
+        self.surface_list = None
+        self.knots1_list = None
         self.knot = None
         self.obj_loader = objloader
     
@@ -205,7 +205,7 @@ class OuterSurface(object):
             print a, ':', b
         
     def drawSurface(self):
-        if self.surface_list is None:
+        if not self.surface_list:
             self.surface_list = uniqueGlListId()
             direction_dict = {Directions.POSX: (1, 0, 0),
                               Directions.POSY: (0, 1, 0),
@@ -270,6 +270,8 @@ class OuterSurface(object):
             return
 
         if not self.knots1_list:
+            self.knots1_list = uniqueGlListId()
+
             quad = gluNewQuadric()
             
             def drawCylinder(start, end):
@@ -294,8 +296,7 @@ class OuterSurface(object):
                 gluCylinder(quad, 0.1, 0.1, height*1.1, 10, 1)
                 glPopMatrix()
 
-            glNewList((self.obj_id * GL_LIST_TOTAL) + GL_LIST_KNOTS_1,
-                      GL_COMPILE)
+            glNewList(self.knots1_list, GL_COMPILE)
             glPushMatrix()
             glMultMatrixd(self.obj_loader.voxelTransformation())
 
@@ -309,6 +310,5 @@ class OuterSurface(object):
             
             glPopMatrix()
             glEndList()
-            self.knots1_list = True
 
-        glCallList(self.obj_id * GL_LIST_TOTAL + GL_LIST_KNOTS_1)
+        glCallList(self.knots1_list)
