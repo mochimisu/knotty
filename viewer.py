@@ -24,6 +24,7 @@ class Viewport(object):
         self.view_triangles = False
         self.view_knots_spline = True
         self.view_knots_polyline = False
+        self.view_knots_control = False
 
 viewport = Viewport()
 #Glut Window #
@@ -37,6 +38,8 @@ def keyPressed(*args):
     if args[0] == ESCAPE:
         glutDestroyWindow(window)
         sys.exit()
+    elif args[0] == '7':
+        viewport.view_knots_control = not viewport.view_knots_control
     elif args[0] == '6':
         viewport.view_knots_polyline = not viewport.view_knots_polyline
     elif args[0] == '5':
@@ -148,6 +151,8 @@ def drawScene():
         outer_surface.drawKnotsSpline()
     if viewport.view_knots_polyline:
         outer_surface.drawKnotsPolyline()
+    if viewport.view_knots_control:
+        outer_surface.drawKnotsControl()
 
     glutSwapBuffers()
 

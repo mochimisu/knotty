@@ -19,6 +19,7 @@ class OuterSurface(object):
         self.knots1_list = None
         self.knots_spline_list = None
         self.knots_spline_polyline_list = None
+        self.knots_spline_control_list = None
         self.knot = None
         self.obj_loader = objloader
     
@@ -339,6 +340,7 @@ class OuterSurface(object):
                 array_control_points = map(lambda x: array(x), loop)
                 loop_spline.control_points = array_control_points
                 loop_spline.generatePolyline()
+                #loop_spline.cross_section = control_spline.control_points
                 loop_spline.setBsplineCrossSection(control_spline)
                 loop_spline.generateSweepShape(0.1)
                 loop_spline.drawSpline()
@@ -373,5 +375,29 @@ class OuterSurface(object):
             glEndList()
 
         glCallList(self.knots_spline_polyline_list)
+
+    def drawKnotsControl(self):
+        if not self.knot:
+            return
+        if not self.knots_spline_control_list:
+            self.knots_spline_control_list = uniqueGlListId()
+
+            glNewList(self.knots_spline_control_list, GL_COMPILE)
+            glPushMatrix()
+            glMultMatrixd(self.obj_loader.voxelTransformation())
+
+            glColor3f(1.0, 1.0, 1.0)
+
+            for loop in self.knot.closed_loops:
+                loop_spline = BSpline()
+                array_control_points = map(lambda x: array(x), loop)
+                loop_spline.control_points = array_control_points
+                loop_spline.drawControl()
+
+            glPopMatrix()
+            glEndList()
+
+        glCallList(self.knots_spline_control_list)
+
 
 
