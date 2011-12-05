@@ -19,13 +19,15 @@ class Viewport(object):
         self.orientation = identity3D()
         self.mouse_mode = "rotate"
         self.view_knots1 = False
-        self.view_surface = True
+        self.view_surface = False
         self.view_voxels = False
         self.view_triangles = False
+        self.view_knots_spline = True
+        self.view_knots_polyline = False
 
 viewport = Viewport()
 #Glut Window #
-window = 0 
+window = 0
 obj_loader = None
 outer_surface = None
 
@@ -35,6 +37,10 @@ def keyPressed(*args):
     if args[0] == ESCAPE:
         glutDestroyWindow(window)
         sys.exit()
+    elif args[0] == '6':
+        viewport.view_knots_polyline = not viewport.view_knots_polyline
+    elif args[0] == '5':
+        viewport.view_knots_spline = not viewport.view_knots_spline
     elif args[0] == '4':
         viewport.view_knots1 = not viewport.view_knots1
     elif args[0] == '3':
@@ -138,6 +144,10 @@ def drawScene():
         outer_surface.drawSurface()
     if viewport.view_knots1:
         outer_surface.drawKnots1()
+    if viewport.view_knots_spline:
+        outer_surface.drawKnotsSpline()
+    if viewport.view_knots_polyline:
+        outer_surface.drawKnotsPolyline()
 
     glutSwapBuffers()
 
@@ -146,7 +156,7 @@ def main():
     global window
     global obj_loader
     global outer_surface
-        
+
     """
     #bspline test code
     global bspline
@@ -171,12 +181,12 @@ def main():
     bspline2.control_points.append(array([-1,1,0]))
     bspline2.control_points.append(array([-1,-1,0]))
     bspline.setBsplineCrossSection(bspline2)
-    
+
     bspline.generateSweepShape(0.1)
     """
 
 
-    
+
     parser = argparse.ArgumentParser(description="Knotify some OBJs.")
     parser.add_argument("object_file", metavar ="obj", default="teapot.obj",
             help="OBJ or KVOX file")

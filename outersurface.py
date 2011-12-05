@@ -5,6 +5,7 @@ from objloader import *
 from primitives import *
 from knots import *
 from numpy import *
+from bspline import *
 import math
 
 class OuterSurface(object):       
@@ -16,6 +17,8 @@ class OuterSurface(object):
         self.obj_id = objloader.obj_id
         self.surface_list = None
         self.knots1_list = None
+        self.knots_spline_list = None
+        self.knots_spline_polyline_list = None
         self.knot = None
         self.obj_loader = objloader
     
@@ -312,3 +315,64 @@ class OuterSurface(object):
             glEndList()
 
         glCallList(self.knots1_list)
+
+    def drawKnotsSpline(self):
+        if not self.knot:
+            return
+        if not self.knots_spline_list:
+            control_spline = BSpline()
+            control_spline.control_points = [array([1,1,0]),
+                                             array([-1,1,0]),
+                                             array([-1,-1,0]),
+                                             array([1,-1,0]),
+                                             array([1,1,0]),
+                                             array([-1,1,0]),
+                                             array([-1,-1,0])]
+
+            self.knots_spline_list = uniqueGlListId()
+
+            glNewList(self.knots_spline_list, GL_COMPILE)
+            glPushMatrix()
+            glMultMatrixd(self.obj_loader.voxelTransformation())
+
+            glColor3f(1.0, 1.0, 1.0)
+
+            for loop in self.knot.closed_loops:
+                loop_spline = BSpline()
+                array_control_points = map(lambda x: array(x), loop)
+                loop_spline.control_points = array_control_points
+                loop_spline.generatePolyline()
+                loop_spline.setBsplineCrossSection(control_spline)
+                loop_spline.generateSweepShape(0.1)
+                loop_spline.drawSpline()
+
+            glPopMatrix()
+            glEndList()
+
+        glCallList(self.knots_spline_list)
+
+    def drawKnotsPolyline(self):
+        if not self.knot:
+            return
+        if not self.knots_spline_polyline_list:
+            self.knots_spline_polyline_list = uniqueGlListId()
+
+            glNewList(self.knots_spline_polyline_list, GL_COMPILE)
+            glPushMatrix()
+            glMultMatrixd(self.obj_loader.voxelTransformation())
+
+            glColor3f(1.0, 1.0, 1.0)
+
+            for loop in self.knot.closed_loops:
+                loop_spline = BSpline()
+                array_control_points = map(lambda x: array(x), loop)
+                loop_spline.control_points = array_control_points
+                loop_spline.generatePolyline()
+                loop_spline.drawPolyline()
+
+            glPopMatrix()
+            glEndList()
+
+        glCallList(self.knots_spline_polyline_list)
+
+
