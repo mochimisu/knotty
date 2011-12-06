@@ -4,6 +4,10 @@ from numpy.linalg import *
 from algebra import *
 from consts import *
 
+"""
+rotationally minimizing frame
+wang et al. 07
+"""
 def advanceFrame(xi, xi1, ti, si, ri, ti1):
     v1 = xi1 - xi
     c1 = dot(v1, v1)
