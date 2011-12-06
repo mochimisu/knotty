@@ -1,6 +1,6 @@
 #not a great example of python but will do
 
-from OpenGL.GL import * 
+from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from numpy import *
@@ -55,7 +55,7 @@ def keyPressed(*args):
 
 def activeMotion(*args):
 
-    new_mouse = array([float(args[0])/float(viewport.w), 
+    new_mouse = array([float(args[0])/float(viewport.w),
         float(args[1])/float(viewport.h)])
     diff = new_mouse - viewport.mouse_pos
     viewport.mouse_pos = new_mouse
@@ -63,7 +63,7 @@ def activeMotion(*args):
     if length > 0.001:
         if viewport.mouse_mode == "rotate":
             axis = array([diff[1]/length, diff[0]/length, 0])
-            viewport.orientation = (viewport.orientation * 
+            viewport.orientation = (viewport.orientation *
                     rotation3D(axis, -180*length))
         elif viewport.mouse_mode == "scale":
             scale_factor = diff[0]+diff[1]
@@ -71,12 +71,12 @@ def activeMotion(*args):
                     scaling3D(array([1+scale_factor,
                         1+scale_factor,
                         1+scale_factor])))
-        
+
         #doesn't work correctly
         elif viewport.mouse_mode == "pan":
-            viewport.orientation = (viewport.orientation * 
+            viewport.orientation = (viewport.orientation *
                     translation3D(array([diff[0], -diff[1], 0])))
-        
+
         glutPostRedisplay()
 
 def passiveMotion(*args):
@@ -124,7 +124,7 @@ def drawScene():
 
     glMultMatrixd(viewport.orientation)
     glColor4f(1,1,1,1)
-    glMaterialfv(GL_FRONT_AND_BACK, 
+    glMaterialfv(GL_FRONT_AND_BACK,
             GL_AMBIENT_AND_DIFFUSE,
             [1.0,1.0,1.0,1.0])
 
@@ -196,14 +196,17 @@ def main():
     parser.add_argument("object_file", metavar ="obj", default="teapot.obj",
             help="OBJ or KVOX file")
     parser.add_argument("--xor", dest="use_xor", action="store_const",
-            const=True, default=False, 
+            const=True, default=False,
             help="Use XOR instead of Winding Number")
-    parser.add_argument("-b", "--boundaries", dest="use_boundaries", 
+    parser.add_argument("-b", "--boundaries", dest="use_boundaries",
         action="store_const", const=True, default=False,
-        help=("Use only boundary voxels in voxelization (more expensive, but"+ 
+        help=("Use only boundary voxels in voxelization (more expensive, but"+
               " can handle non-nice objects)"))
     parser.add_argument("-r", "--resolution", dest="resolution",
-            nargs="?", type=int, default=50, help="Voxelization resolution") 
+            nargs="?", type=int, default=50, help="Voxelization resolution")
+    parser.add_argument("-s", "--samples", dest="num_samples",
+            nargs="?", type=int, default=2, help=("Number of samples on "+
+                                                   "spline per control point"))
     parser.add_argument("-d", "--dont_save_vox", dest="save_vox",
             action="store_const", const=False, default=True)
     parser.add_argument("-f", "--force_new_vox", dest="new_vox",
@@ -223,6 +226,7 @@ def main():
         print "Winding Number"
 
     print "Resolution: "+str(args.resolution)
+    print "Sample Ratio: "+str(args.num_samples)
 
     viewport.w = args.width
     viewport.h = args.height
@@ -242,8 +246,8 @@ def main():
     obj_loader.use_boundaries = args.use_boundaries
     if filename_suffix == "obj":
         obj_loader.loadObj(args.object_file)
-        if (not args.new_vox and 
-                obj_loader.loadVoxCheckMeta(filename_no_suffix+".kvox", 
+        if (not args.new_vox and
+                obj_loader.loadVoxCheckMeta(filename_no_suffix+".kvox",
                     args.resolution)):
             obj_loader.loadVox(filename_no_suffix+".kvox")
         else:
@@ -258,6 +262,7 @@ def main():
     else:
         print "Invalid file specified"
     outer_surface = OuterSurface(obj_loader)
+    outer_surface.num_samples = args.num_samples
     outer_surface.generate()
     outer_surface.applyKnots()
 
@@ -274,7 +279,7 @@ def main():
     glLightfv(GL_LIGHT0, GL_DIFFUSE, [1,1,1,1])
     glLightfv(GL_LIGHT0, GL_POSITION, [1, 1, 1, 0])
     glEnable(GL_LIGHT0)
-    
+
     glutMainLoop()
 
 if __name__ == '__main__':

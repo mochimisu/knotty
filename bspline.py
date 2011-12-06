@@ -173,19 +173,39 @@ class BSpline(object):
                 new_slice.append(pts[1].point + pt)
 
             if i > 1:
+                claimed_cross = []
+                for v in xrange(len(self.cross_section)):
+                    claimed_cross.append(False)
                 for v in xrange(len(self.cross_section)):
                     vn = v % len(self.cross_section)
 
+                    """
+                    assuming its a rotationally invariant cross section...
+                    find the closest vertex
+                    """
+
+                    distances = []
+                    for w in xrange(len(self.cross_section)):
+                        distances.append((w,dist2(old_slice[w], new_slice[vn])))
+                    #implement quickselect here later
+                    distances = sorted(filter((lambda d:
+                                                  not claimed_cross[d[0]]),
+                                              distances),
+                                       key=lambda d: d[1])
+                    old_vn = distances[0][0]
+                    claimed_cross[old_vn] = True
+
+
                     new_point0 = SplinePoint()
-                    tan0 = (old_slice[(vn+1)%len(self.cross_section)] - 
-                            old_slice[vn])
+                    tan0 = (old_slice[(old_vn+1)%len(self.cross_section)] -
+                            old_slice[old_vn])
                     tan0 /= norm(tan0)
                     new_point0.normal = -(cross(tan0, old_dir))
-                    new_point0.point = old_slice[vn]
+                    new_point0.point = old_slice[old_vn]
                     self.vertices.append(new_point0)
 
                     new_point1 = SplinePoint()
-                    tan1 = (new_slice[(vn+1)%len(self.cross_section)] - 
+                    tan1 = (new_slice[(vn+1)%len(self.cross_section)] -
                             new_slice[vn])
                     tan1 /= norm(tan1)
                     new_point1.normal = -(cross(tan1, direction))

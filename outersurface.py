@@ -23,6 +23,7 @@ class OuterSurface(object):
         self.knot = None
         self.splines = []
         self.obj_loader = objloader
+        self.num_samples = 1
 
     def generate(self):
         """
@@ -341,7 +342,9 @@ class OuterSurface(object):
             if num samples = num cp, then it is like taking each control point
             as a sample point
             """
-            loop_spline.num_samples = len(array_control_points)*2
+            loop_spline.num_samples = (len(array_control_points)
+                                       *self.num_samples)
+            print self.num_samples
             loop_spline.generatePolyline()
             #loop_spline.cross_section = control_spline.control_points
             loop_spline.setBsplineCrossSection(control_spline)
