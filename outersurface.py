@@ -357,7 +357,6 @@ class OuterSurface(object):
             cur_loop_num += 1
         print "...complete"
 
-
     def drawKnotsSpline(self):
         if not self.knot:
             return

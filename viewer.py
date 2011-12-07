@@ -128,12 +128,6 @@ def drawScene():
             GL_AMBIENT_AND_DIFFUSE,
             [1.0,1.0,1.0,1.0])
 
-    """
-    bspline.drawPolyline()
-    bspline.drawControl()
-    bspline.drawSpline()
-    """
-
     if viewport.view_voxels:
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE)
@@ -161,36 +155,6 @@ def main():
     global window
     global obj_loader
     global outer_surface
-
-    """
-    #bspline test code
-    global bspline
-    global bspline2
-    bspline = BSpline()
-    bspline.control_points.append(array([0,0,0]))
-    bspline.control_points.append(array([0,1,0]))
-    bspline.control_points.append(array([1,0,0]))
-    bspline.control_points.append(array([2,0,0]))
-    bspline.control_points.append(array([3,3,0]))
-    bspline.generatePolyline()
-    #bspline.cross_section.append(array([0.1,0.1,0]))
-    #bspline.cross_section.append(array([-0.1,0.1,0]))
-    #bspline.cross_section.append(array([-0.1,-0.1,0]))
-    #bspline.cross_section.append(array([0.1,-0.1,0]))
-    bspline2 = BSpline()
-    bspline2.control_points.append(array([1,1,0]))
-    bspline2.control_points.append(array([-1,1,0]))
-    bspline2.control_points.append(array([-1,-1,0]))
-    bspline2.control_points.append(array([1,-1,0]))
-    bspline2.control_points.append(array([1,1,0]))
-    bspline2.control_points.append(array([-1,1,0]))
-    bspline2.control_points.append(array([-1,-1,0]))
-    bspline.setBsplineCrossSection(bspline2)
-
-    bspline.generateSweepShape(0.1)
-    """
-
-
 
     parser = argparse.ArgumentParser(description="Knotify some OBJs.")
     parser.add_argument("object_file", metavar ="obj", default="teapot.obj",
