@@ -25,6 +25,8 @@ class Viewport(object):
         self.view_knots_spline = True
         self.view_knots_polyline = False
         self.view_knots_control = False
+        self.view_knots_triangle = False
+        self.view_wireframe = False
 
 viewport = Viewport()
 #Glut Window #
@@ -38,6 +40,10 @@ def keyPressed(*args):
     if args[0] == ESCAPE:
         glutDestroyWindow(window)
         sys.exit()
+    elif args[0] == '9':
+        viewport.view_wireframe = not viewport.view_wireframe
+    elif args[0] == '8':
+        viewport.view_knots_triangle = not viewport.view_knots_triangle
     elif args[0] == '7':
         viewport.view_knots_control = not viewport.view_knots_control
     elif args[0] == '6':
@@ -116,6 +122,13 @@ def resizeScene(w,h):
     glMatrixMode(GL_MODELVIEW)
 
 def drawScene():
+    if viewport.view_wireframe:
+        glPolygonMode(GL_FRONT, GL_LINE)
+        glPolygonMode(GL_BACK, GL_LINE)
+    else:
+        glPolygonMode(GL_FRONT, GL_FILL)
+        glPolygonMode(GL_BACK, GL_FILL)
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
@@ -147,6 +160,8 @@ def drawScene():
         outer_surface.drawKnotsPolyline()
     if viewport.view_knots_control:
         outer_surface.drawKnotsControl()
+    if viewport.view_knots_triangle:
+        outer_surface.drawKnotsTriangle()
 
     glutSwapBuffers()
 
@@ -270,7 +285,7 @@ def main():
     glLightfv(GL_LIGHT0, GL_POSITION, [1, 1, 1, 0])
     glEnable(GL_LIGHT0)
 
-    #glPolygonMode(GL_FRONT, GL_LINE)
+    glLineWidth(2)
 
     glutMainLoop()
 

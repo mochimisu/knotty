@@ -21,6 +21,7 @@ class OuterSurface(object):
         self.knots_spline_list = None
         self.knots_spline_polyline_list = None
         self.knots_spline_control_list = None
+        self.knots_spline_triangle_list = None
         self.knot = None
         self.splines = []
         self.obj_loader = objloader
@@ -474,6 +475,28 @@ class OuterSurface(object):
             glEndList()
 
         glCallList(self.knots_spline_control_list)
+
+
+    def drawKnotsTriangle(self):
+        if not self.knot:
+            return
+        if not self.knots_spline_triangle_list:
+            self.knots_spline_triangle_list = uniqueGlListId()
+
+            glNewList(self.knots_spline_triangle_list, GL_COMPILE)
+            glPushMatrix()
+            glMultMatrixd(self.obj_loader.voxelTransformation())
+
+            glColor3f(1.0, 1.0, 1.0)
+
+            for spline in self.splines:
+                spline.drawSplineTriangle()
+
+            glPopMatrix()
+            glEndList()
+
+        glCallList(self.knots_spline_triangle_list)
+
 
 
 

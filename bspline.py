@@ -3,6 +3,7 @@ from numpy import *
 from numpy.linalg import *
 from algebra import *
 from consts import *
+import sys
 
 """
 rotationally minimizing frame
@@ -178,12 +179,38 @@ class BSpline(object):
                 offset = 0
                 for v in xrange(len(self.cross_section)):
                     claimed_cross.append(False)
+                distances = []
+                for v in xrange(len(self.cross_section)):
+                    cur_min = sys.maxint
+                    cur_v = 0
+                    for w in xrange(len(self.cross_section)):
+                        cur_dist = dist2(old_slice[w], new_slice[v])
+                        if cur_dist < cur_min:
+                            cur_min = cur_dist
+                            cur_v = w
+                    distances.append((cur_min, cur_v))
+
+                cur_min = distances[0][0]
+                cur_old = distances[0][1]
+                cur_v = 0
+                for v in xrange(len(distances)):
+                    d = distances[v]
+                    if d[0] < cur_min:
+                        cur_min = d[0]
+                        cur_old = d[1]
+                        cur_v = v
+                offset = cur_old - cur_v
+
+                    
+
+
                 for v in xrange(len(self.cross_section)):
                     vn = v % len(self.cross_section)
 
                     """
                     assuming its a rotationally invariant cross section...
                     find the closest vertex
+                    """
                     """
 
                     distances = []
@@ -197,6 +224,7 @@ class BSpline(object):
                     old_vn = distances[0][0]
                     claimed_cross[old_vn] = True
 
+                    """
                     """
 
                     if first_intersection:
@@ -214,7 +242,7 @@ class BSpline(object):
                         old_vn = (vn + offset) % len(self.cross_section)
                     """
 
-
+                    old_vn = (vn + offset) % len(self.cross_section)
 
 
                     new_point0 = SplinePoint()
