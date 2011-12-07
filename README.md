@@ -11,22 +11,23 @@ CS285 Project - Brandon Wang, Andrew Lee
 ## Current Status
 ###Done
 * Initial OpenGL Code:
-	* PyOpenGL working
+  * PyOpenGL working
   * Viewport/quaternion rotation working
 
 * Voxelization:
 
-	* "Well-behaved" OBJs
-		* Winding Number
-		* Parity/XOR
+  * "Well-behaved" OBJs
+    * Winding Number
+    * Parity/XOR
 
-	* All OBJ
-		* 3 pass boundary voxels
+  * All OBJ
+    * 3 pass boundary voxels
 
 * Patterning:
-	* Up and down control points specified
+  * Up and down control points specified
+  * Control points to spline
+  * Spline to polygon
 
 ###Not Done
-* Control points to spline
-* Knot to polygon
+* Watertight polygon
 * Polygon to STL

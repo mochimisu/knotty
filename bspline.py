@@ -174,7 +174,7 @@ class BSpline(object):
 
             if i > 1:
                 claimed_cross = []
-                first_intersection = True
+                #first_intersection = True
                 offset = 0
                 for v in xrange(len(self.cross_section)):
                     claimed_cross.append(False)
@@ -185,7 +185,7 @@ class BSpline(object):
                     assuming its a rotationally invariant cross section...
                     find the closest vertex
                     """
-                    """
+
                     distances = []
                     for w in xrange(len(self.cross_section)):
                         distances.append((w,dist2(old_slice[w], new_slice[vn])))
@@ -196,6 +196,7 @@ class BSpline(object):
                                        key=lambda d: d[1])
                     old_vn = distances[0][0]
                     claimed_cross[old_vn] = True
+
                     """
 
                     if first_intersection:
@@ -211,6 +212,7 @@ class BSpline(object):
                         first_intersection = False
                     else:
                         old_vn = (vn + offset) % len(self.cross_section)
+                    """
 
 
 
