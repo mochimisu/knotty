@@ -225,10 +225,9 @@ class OuterSurface(object):
         try:
             loaded_surface = pickle.load( open(filename, "rb"))
             if (loaded_surface.version == self.version and
-                (obj_loader is not None or (
-                    (loaded_surface.num_samples >=
-                        self.num_samples) and
-                    (loaded_surface.voxel_dimension ==
+                loaded_surface.num_samples >= self.num_samples and
+                (obj_loader is None or (
+                    (loaded_surface.obj_loader.voxel_dimension ==
                         obj_loader.voxel_dimension) and
                     (len(loaded_surface.obj_loader.voxelized) ==
                         len(obj_loader.voxelized))))):
@@ -400,7 +399,8 @@ class OuterSurface(object):
                     loop_total_num),
             sys.stdout.flush()
             cur_loop_num += 1
-        print "...complete"
+        print ("\rSpline Generation: "+loop_total_num+"/"+
+                loop_total_num+"...complete")
 
     def drawKnotsSpline(self):
         if not self.knot:
@@ -416,8 +416,17 @@ class OuterSurface(object):
 
             glColor3f(1.0, 1.0, 1.0)
 
+            print "Compiling splines for GL display"
+
+            cur_spline = 0
+            num_splines = str(len(self.splines))
             for spline in self.splines:
                 spline.drawSpline()
+                print ("\rSpline Compilation: "+str(cur_spline)+"/"+
+                        num_splines),
+
+            print ("\rSpline Compilation: "+num_splines+"/"+
+                    num_splines+"...complete")
 
             glPopMatrix()
             glEndList()

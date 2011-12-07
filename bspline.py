@@ -174,6 +174,8 @@ class BSpline(object):
 
             if i > 1:
                 claimed_cross = []
+                first_intersection = True
+                offset = 0
                 for v in xrange(len(self.cross_section)):
                     claimed_cross.append(False)
                 for v in xrange(len(self.cross_section)):
@@ -183,7 +185,7 @@ class BSpline(object):
                     assuming its a rotationally invariant cross section...
                     find the closest vertex
                     """
-
+                    """
                     distances = []
                     for w in xrange(len(self.cross_section)):
                         distances.append((w,dist2(old_slice[w], new_slice[vn])))
@@ -194,6 +196,23 @@ class BSpline(object):
                                        key=lambda d: d[1])
                     old_vn = distances[0][0]
                     claimed_cross[old_vn] = True
+                    """
+
+                    if first_intersection:
+                        distances = []
+                        for w in xrange(len(self.cross_section)):
+                            distances.append((w,dist2(old_slice[w], new_slice[vn])))
+                        distances = sorted(filter((lambda d:
+                                                      not claimed_cross[d[0]]),
+                                                  distances),
+                                           key=lambda d: d[1])
+                        old_vn = distances[0][0]
+                        offset = old_vn - vn
+                        first_intersection = False
+                    else:
+                        old_vn = (vn + offset) % len(self.cross_section)
+
+
 
 
                     new_point0 = SplinePoint()
@@ -256,6 +275,44 @@ class BSpline(object):
             n = p.normal
             glNormal3f(n[0], n[1], n[2])
             glVertex3f(pt[0], pt[1], pt[2])
+        glEnd()
+
+    def drawSplineTriangle(self):
+        """
+        testing for quad->triangle for STL export
+        """
+        glBegin(GL_TRIANGLES)
+        for i in xrange(len(self.vertices)-2):
+            """
+            equal weighting - can weight by angle, but in the end
+            we are just making the normal for the STL files, not rendering
+            """
+            cur_normal = (self.vertices[i].normal
+                          + self.vertices[i+1].normal
+                          + self.vertices[i+2].normal)/3
+            glNormal3f(cur_normal[0], cur_normal[1], cur_normal[2])
+            cur_v = map(lambda v: v.point,
+                        (self.vertices[i],
+                         self.vertices[i+1],
+                         self.vertices[i+2]))
+
+            """
+            Determine alignment
+            """
+
+            dir1 = cur_v[1] - cur_v[0]
+            dir2 = cur_v[2] - cur_v[0]
+            dir_norm = cross(dir1, dir2)
+
+            if dot(dir_norm, cur_normal) > 0:
+                glVertex3f(cur_v[0][0], cur_v[0][1], cur_v[0][2])
+                glVertex3f(cur_v[1][0], cur_v[1][1], cur_v[1][2])
+                glVertex3f(cur_v[2][0], cur_v[2][1], cur_v[2][2])
+            else:
+                glVertex3f(cur_v[2][0], cur_v[2][1], cur_v[2][2])
+                glVertex3f(cur_v[1][0], cur_v[1][1], cur_v[1][2])
+                glVertex3f(cur_v[0][0], cur_v[0][1], cur_v[0][2])
+
         glEnd()
 
 

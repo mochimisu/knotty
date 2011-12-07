@@ -270,6 +270,8 @@ def main():
     glLightfv(GL_LIGHT0, GL_POSITION, [1, 1, 1, 0])
     glEnable(GL_LIGHT0)
 
+    #glPolygonMode(GL_FRONT, GL_LINE)
+
     glutMainLoop()
 
 if __name__ == '__main__':
