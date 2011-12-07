@@ -344,7 +344,6 @@ class OuterSurface(object):
             """
             loop_spline.num_samples = (len(array_control_points)
                                        *self.num_samples)
-            print self.num_samples
             loop_spline.generatePolyline()
             #loop_spline.cross_section = control_spline.control_points
             loop_spline.setBsplineCrossSection(control_spline)

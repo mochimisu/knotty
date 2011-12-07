@@ -10,6 +10,7 @@ from outersurface import *
 from bspline import *
 import sys
 import argparse
+import pickle
 
 class Viewport(object):
     def __init__(self):
@@ -229,6 +230,9 @@ def main():
     outer_surface.num_samples = args.num_samples
     outer_surface.generate()
     outer_surface.applyKnots()
+    outer_surface.createBezierCurves()
+
+    pickle.dump(outer_surface, open("test.osurf", "wb"))
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
