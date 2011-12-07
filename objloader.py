@@ -26,12 +26,14 @@ class ObjLoader(object):
         self.voxel_dimension = 1
         ObjLoader.obj_class_id = ObjLoader.obj_class_id + 1
 
+        self.vox_version = VOXEL_FILE_VERSION
+
     def saveVox(self, filename):
         dimensions = [len(self.voxelized), 
                       len(self.voxelized[0]), 
                       len(self.voxelized[0][0])]
         with open(filename,"w") as f:
-            f.write("knottyvox version 1\n")
+            f.write("knottyvox version "+str(self.vox_version)+"\n")
             f.write(str(dimensions[0])+","+
                     str(dimensions[1])+","+
                     str(dimensions[2])+","+
@@ -61,7 +63,7 @@ class ObjLoader(object):
                 meta_split = meta_line.split(",")
                 if (version_split[0] != "knottyvox" or
                     version_split[1] != "version" or
-                    version_split[2] != "1"):
+                    version_split[2] != str(self.vox_version)):
                     print "Invalid file"
                     return False
 

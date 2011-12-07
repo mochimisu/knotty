@@ -84,7 +84,7 @@ class BSpline(object):
                 bases[i] = lerped_pos
 
         return bases[0]
-    
+
     def setBsplineCrossSection(self, bsp):
         bsp.generatePolyline()
         self.cross_section = map(lambda x: x.point, bsp.polyline)

@@ -7,6 +7,7 @@ from knots import *
 from numpy import *
 from bspline import *
 import math
+import cPickle as pickle
 
 class OuterSurface(object):
 
@@ -24,6 +25,12 @@ class OuterSurface(object):
         self.splines = []
         self.obj_loader = objloader
         self.num_samples = 1
+
+        #serialization check
+        self.version = OUTER_SURFACE_FILE_VERSION
+
+    def updateVoxels(self):
+        self.voxels = self.obj_loader.voxelized
 
     def generate(self):
         """
@@ -209,6 +216,45 @@ class OuterSurface(object):
                 self.knot.addSequence(seq)
         for a, b in self.knot.open_loops.items():
             print a, ':', b
+
+    """
+    Right now, this is done through pickle.
+    This results in a huge file size. I will make a new file format later...
+    """
+    def load(self, filename, obj_loader=None):
+        try:
+            loaded_surface = pickle.load( open(filename, "rb"))
+            if (loaded_surface.version == self.version and
+                (obj_loader is not None or (
+                    (loaded_surface.num_samples >=
+                        self.num_samples) and
+                    (loaded_surface.voxel_dimension ==
+                        obj_loader.voxel_dimension) and
+                    (len(loaded_surface.obj_loader.voxelized) ==
+                        len(obj_loader.voxelized))))):
+                self.voxels = loaded_surface.voxels
+                self.root_face = loaded_surface.root_face
+                self.surface_faces = loaded_surface.surface_faces
+                self.obj_id = loaded_surface.obj_id
+                self.surface_list = None
+                self.knots1_list = None
+                self.knots_spline_list = None
+                self.knots_spline_polyline_list = None
+                self.knots_spline_control_list = None
+                self.knot = loaded_surface.knot
+                self.splines = loaded_surface.splines
+                self.obj_loader = loaded_surface.obj_loader
+                self.num_samples = loaded_surface.num_samples
+
+                self.obj_loader.polygon_list = None
+                self.obj_loader.voxel_list = None
+                return True
+        except IOError as e:
+            print "Spline file not cached yet"
+        return False
+
+    def save(self, filename):
+        return pickle.dump(self, open(filename, "wb"))
 
     def drawSurface(self):
         if not self.surface_list:

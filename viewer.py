@@ -173,8 +173,13 @@ def main():
                                                    "spline per control point"))
     parser.add_argument("-d", "--dont_save_vox", dest="save_vox",
             action="store_const", const=False, default=True)
+    parser.add_argument("-k", "--dont_save_kos", dest="save_kos",
+            action="store_const", const=False, default=True)
     parser.add_argument("-f", "--force_new_vox", dest="new_vox",
             action="store_const", const=True, default=False)
+    parser.add_argument("-l", "--force_new_kos", dest="new_kos",
+            action="store_const", const=True, default=False)
+
     parser.add_argument("--width", dest="width",
             nargs="?", type=int, default=640, help="Viewport width")
     parser.add_argument("--height", dest="height",
@@ -207,13 +212,21 @@ def main():
 
     obj_loader = ObjLoader()
     obj_loader.use_xor = args.use_xor
-    obj_loader.use_boundaries = args.use_boundaries
+    obj_loader.use_boundaries = args.use_boundaries 
+
+    outer_surface = OuterSurface(obj_loader)
+    outer_surface.num_samples = args.num_samples
+
+    loaded_outer_surface = False
     if filename_suffix == "obj":
         obj_loader.loadObj(args.object_file)
         if (not args.new_vox and
                 obj_loader.loadVoxCheckMeta(filename_no_suffix+".kvox",
                     args.resolution)):
             obj_loader.loadVox(filename_no_suffix+".kvox")
+            if not args.new_kos:
+                loaded_outer_surface = outer_surface.load(filename_no_suffix+
+                                                          ".kos", obj_loader)
         else:
             if args.new_vox:
                 print "Forcing new voxel cache"
@@ -223,13 +236,25 @@ def main():
             obj_loader.saveVox(filename_no_suffix+".kvox")
     elif filename_suffix == "kvox":
         obj_loader.loadVox(args.object_file)
+    elif filename_suffix == "kos":
+        loaded_outer_surface = outer_surface.load(filename_no_suffix+".kos")
     else:
         print "Invalid file specified"
-    outer_surface = OuterSurface(obj_loader)
-    outer_surface.num_samples = args.num_samples
-    outer_surface.generate()
-    outer_surface.applyKnots()
-    outer_surface.createBezierCurves()
+
+    if not loaded_outer_surface:
+        print "Generating outer surface"
+        outer_surface.updateVoxels()
+        outer_surface.generate()
+        outer_surface.applyKnots()
+        print "Generating bezier curves"
+        outer_surface.createBezierCurves()
+        if args.save_kos:
+            outer_surface.save(filename_no_suffix+".kos")
+            print filename_no_suffix+".kos saved successfully!"
+        print "Outer surface loaded"
+    else:
+        obj_loader = outer_surface.obj_loader
+        print filename_no_suffix+".kos loaded successfully!"
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
