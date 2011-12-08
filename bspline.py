@@ -166,8 +166,9 @@ class BSpline(object):
                 scale_trans = scale_t - 1.0
 
             for cs in self.cross_section:
-                pos2d = dot(rotation2D(array([0,0]), rot),cs).tolist()[0]
-                pt = right * pos2d[0] * scale + up * pos2d[1] * scale
+                cs = array([cs[0], cs[1], 1])
+                pos2d = cs * rotation2D(array([0,0]), rot).transpose()
+                pt = right * pos2d[0,0] * scale + up * pos2d[0,1] * scale
                 if scale_sect:
                     pt = pt + scale_trans * (pt * bisect) * bisect
                 pt *= pts[1].scale
