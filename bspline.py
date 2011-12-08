@@ -115,9 +115,10 @@ class BSpline(object):
 
         new_slice = []
         old_slice = []
-        old_dir = 0
-        right = 0
-        up = 0
+        old_dir = None
+        old_up = None
+        right = None
+        up = None
 
         first_dir = True
         for i in xrange(1,len(self.polyline)-1):
@@ -144,6 +145,8 @@ class BSpline(object):
             else:
                 up = advanceFrame(pts[0].point, pts[1].point,
                                   old_dir, right, up, direction)
+                if dot(up,old_up) < 0:
+                    up = -up
             right = cross(direction, up)
             right /= norm(right)
             up = cross(right, direction)
@@ -174,87 +177,15 @@ class BSpline(object):
                 new_slice.append(pts[1].point + pt)
 
             if i > 1:
-                """
-                claimed_cross = []
-                #first_intersection = True
-                offset = 0
-                for v in xrange(len(self.cross_section)):
-                    claimed_cross.append(False)
-                distances = []
-                for v in xrange(len(self.cross_section)):
-                    cur_min = sys.maxint
-                    cur_v = 0
-                    for w in xrange(len(self.cross_section)):
-                        cur_dist = dist2(old_slice[w], new_slice[v])
-                        if cur_dist < cur_min:
-                            cur_min = cur_dist
-                            cur_v = w
-                    distances.append((cur_min, cur_v))
-
-                cur_min = distances[0][0]
-                cur_old = distances[0][1]
-                cur_v = 0
-                for v in xrange(len(distances)):
-                    d = distances[v]
-                    if d[0] < cur_min:
-                        cur_min = d[0]
-                        cur_old = d[1]
-                        cur_v = v
-                offset = cur_old - cur_v
-                """
-
-
-
                 for v in xrange(len(self.cross_section)):
                     vn = v % len(self.cross_section)
 
-                    """
-                    assuming its a rotationally invariant cross section...
-                    find the closest vertex
-                    """
-                    """
-
-                    distances = []
-                    for w in xrange(len(self.cross_section)):
-                        distances.append((w,dist2(old_slice[w], new_slice[vn])))
-                    #implement quickselect here later
-                    distances = sorted(filter((lambda d:
-                                                  not claimed_cross[d[0]]),
-                                              distances),
-                                       key=lambda d: d[1])
-                    old_vn = distances[0][0]
-                    claimed_cross[old_vn] = True
-
-                    """
-                    """
-
-                    if first_intersection:
-                        distances = []
-                        for w in xrange(len(self.cross_section)):
-                            distances.append((w,dist2(old_slice[w], new_slice[vn])))
-                        distances = sorted(filter((lambda d:
-                                                      not claimed_cross[d[0]]),
-                                                  distances),
-                                           key=lambda d: d[1])
-                        old_vn = distances[0][0]
-                        offset = old_vn - vn
-                        first_intersection = False
-                    else:
-                        old_vn = (vn + offset) % len(self.cross_section)
-                    """
-
-                    """
-                    old_vn = (vn + offset) % len(self.cross_section)
-                    """
-                    old_vn = vn
-
-
                     new_point0 = SplinePoint()
-                    tan0 = (old_slice[(old_vn+1)%len(self.cross_section)] -
-                            old_slice[old_vn])
+                    tan0 = (old_slice[(vn+1)%len(self.cross_section)] -
+                            old_slice[vn])
                     tan0 /= norm(tan0)
                     new_point0.normal = -(cross(tan0, old_dir))
-                    new_point0.point = old_slice[old_vn]
+                    new_point0.point = old_slice[vn]
                     self.vertices.append(new_point0)
 
                     new_point1 = SplinePoint()
@@ -268,6 +199,7 @@ class BSpline(object):
             old_slice = new_slice
             new_slice = []
             old_dir = direction
+            old_up = up
 
 
 
