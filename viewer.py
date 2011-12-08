@@ -195,6 +195,9 @@ def main():
     parser.add_argument("-l", "--force_new_kos", dest="new_kos",
             action="store_const", const=True, default=False)
 
+    parser.add_argument("-t", "--dont_save_stl", dest="save_stl",
+            action="store_const", const=False, default=True)
+
     parser.add_argument("--width", dest="width",
             nargs="?", type=int, default=640, help="Viewport width")
     parser.add_argument("--height", dest="height",
@@ -270,6 +273,9 @@ def main():
     else:
         obj_loader = outer_surface.obj_loader
         print filename_no_suffix+".kos loaded successfully!"
+
+    if args.save_stl:
+        outer_surface.saveStl(filename_no_suffix+".stl")
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)

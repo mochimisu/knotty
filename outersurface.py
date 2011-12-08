@@ -403,6 +403,61 @@ class OuterSurface(object):
         print ("\rSpline Generation: "+loop_total_num+"/"+
                 loop_total_num+"...complete")
 
+    def saveStl(self, filename):
+        try:
+            with open(filename,"w") as f:
+                f.write("solid knotty\n")
+                cur_triangles = 0
+                cur_splines = 0
+                max_splines = str(len(self.splines))
+                for spline in self.splines:
+                    for i in xrange(len(spline.vertices)-2):
+                        """
+                        equal weighting - can weight by angle, but in the end
+                        we are just making the normal for the STL files, not rendering
+                        """
+                        cur_normal = (spline.vertices[i].normal
+                                      + spline.vertices[i+1].normal
+                                      + spline.vertices[i+2].normal)/3
+                        f.write("facet normal "+str(cur_normal[0])+" "
+                                               +str(cur_normal[1])+" "
+                                               +str(cur_normal[2])+"\n")
+                        cur_v = (spline.vertices[i].point,
+                                 spline.vertices[i+1].point,
+                                 spline.vertices[i+2].point)
+
+                        """
+                        Determine alignment
+                        """
+
+                        dir1 = cur_v[1] - cur_v[0]
+                        dir2 = cur_v[2] - cur_v[0]
+                        dir_norm = cross(dir1, dir2)
+                        vertices = None
+
+                        if dot(dir_norm, cur_normal) > 0:
+                            vertices = (cur_v[0], cur_v[1], cur_v[2])
+                        else:
+                            vertices = (cur_v[2], cur_v[1], cur_v[0])
+
+                        f.write("outer loop\n")
+                        for v in cur_v:
+                            f.write("vertex "+str(v[0])+" "+str(v[1])+" "
+                                    +str(v[2])+"\n")
+                        f.write("endloop\n")
+                        f.write("endfacet\n")
+                        cur_triangles += 1
+                    cur_splines += 1
+                    print ("\rSaving STL: "+str(cur_splines)+"/"+max_splines),
+                    sys.stdout.flush()
+                f.write("endsolid knotty\n")
+                print "\rSaving STL: "+max_splines+"/"+max_splines
+                print (str(filename)+" saved! ("+
+                        str(cur_triangles)+" triangles)")
+        except IOError as e:
+            print "Could not save STL file: "+str(e)
+
+
     def drawKnotsSpline(self):
         if not self.knot:
             return
