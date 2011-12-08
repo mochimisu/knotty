@@ -157,13 +157,13 @@ class BSpline(object):
             scale_trans = 0
 
             #only scale if not going straight
-            if len < 0.0001:
+            if length > 0.0001:
                 scale_sect = True
-                bisect = bisect/len
-                dotted = -leg1*leg2
+                bisect = bisect/length
+                dotted = dot(-leg1,leg2)
                 angle = math.acos(clamp(dotted, -1.0, 1.0))
-                scale = (float) (1.0)/max(cos(0.5*angle), 0.1)
-                scale_trans = scale - 1.0
+                scale_t = (float) (1.0)/max(cos(0.5*angle), 0.1)
+                scale_trans = scale_t - 1.0
 
             for cs in self.cross_section:
                 pos2d = dot(rotation2D(array([0,0]), rot),cs).tolist()[0]
@@ -174,6 +174,7 @@ class BSpline(object):
                 new_slice.append(pts[1].point + pt)
 
             if i > 1:
+                """
                 claimed_cross = []
                 #first_intersection = True
                 offset = 0
@@ -200,8 +201,8 @@ class BSpline(object):
                         cur_old = d[1]
                         cur_v = v
                 offset = cur_old - cur_v
+                """
 
-                    
 
 
                 for v in xrange(len(self.cross_section)):
@@ -242,7 +243,10 @@ class BSpline(object):
                         old_vn = (vn + offset) % len(self.cross_section)
                     """
 
+                    """
                     old_vn = (vn + offset) % len(self.cross_section)
+                    """
+                    old_vn = vn
 
 
                     new_point0 = SplinePoint()

@@ -374,6 +374,7 @@ class OuterSurface(object):
                                          array([-1,1,0]),
                                          array([-1,-1,0]),
                                          array([1,-1,0])]
+        control_spline.num_samples = 8
         cur_loop_num = 0
         loop_total_num = str(len(self.knot.closed_loops))
 
@@ -480,6 +481,8 @@ class OuterSurface(object):
                 spline.drawSpline()
                 print ("\rSpline Compilation: "+str(cur_spline)+"/"+
                         num_splines),
+                sys.stdout.flush()
+                cur_spline += 1
 
             print ("\rSpline Compilation: "+num_splines+"/"+
                     num_splines+"...complete")
@@ -503,8 +506,19 @@ class OuterSurface(object):
 
             glColor3f(1.0, 1.0, 1.0)
 
+            print "Compiling polyline for GL display"
+
+            cur_spline = 0
+            num_splines = str(len(self.splines))
+
             for spline in self.splines:
                 spline.drawPolyline()
+                print ("\rPolyline Compilation: "+str(cur_spline)+"/"+
+                        num_splines),
+                sys.stdout.flush()
+                cur_spline += 1
+            print ("\rPolyline Compilation: "+num_splines+"/"+
+                    num_splines+"...complete")
 
             glPopMatrix()
             glEndList()
@@ -523,8 +537,19 @@ class OuterSurface(object):
 
             glColor3f(1.0, 1.0, 1.0)
 
+            print "Compiling control points for GL display"
+
+            cur_spline = 0
+            num_splines = str(len(self.splines))
+
             for spline in self.splines:
                 spline.drawControl()
+                print ("\rControl Point Compilation: "+str(cur_spline)+"/"+
+                        num_splines),
+                sys.stdout.flush()
+                cur_spline += 1
+            print ("\rControl Point Compilation: "+num_splines+"/"+
+                    num_splines+"...complete")
 
             glPopMatrix()
             glEndList()
@@ -544,8 +569,19 @@ class OuterSurface(object):
 
             glColor3f(1.0, 1.0, 1.0)
 
+            print "Compiling spline (triangle) for GL display"
+
+            cur_spline = 0
+            num_splines = str(len(self.splines))
+
             for spline in self.splines:
                 spline.drawSplineTriangle()
+                print ("\rSpline (Triangle) Compilation: "+str(cur_spline)+"/"+
+                        num_splines),
+                sys.stdout.flush()
+                cur_spline += 1
+            print ("\rSpline (Triangle) Compilation: "+num_splines+"/"+
+                    num_splines+"...complete")
 
             glPopMatrix()
             glEndList()
