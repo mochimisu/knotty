@@ -291,6 +291,7 @@ def main():
     glLightfv(GL_LIGHT0, GL_DIFFUSE, [1,1,1,1])
     glLightfv(GL_LIGHT0, GL_POSITION, [1, 1, 1, 0])
     glEnable(GL_LIGHT0)
+    glEnable(GL_CULL_FACE)
 
     glLineWidth(2)
 

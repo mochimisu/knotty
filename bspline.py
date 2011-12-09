@@ -251,8 +251,9 @@ class BSpline(object):
         testing for quad->triangle for STL export
         """
         glBegin(GL_TRIANGLES)
+
         for q in self.vertices:
-            for i in xrange(len(q)-2):
+            for i in xrange(len(q)-6):
                 """
                 equal weighting - can weight by angle, but in the end
                 we are just making the normal for the STL files, not rendering

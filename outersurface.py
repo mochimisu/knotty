@@ -413,20 +413,26 @@ class OuterSurface(object):
                 max_splines = str(len(self.splines))
                 for spline in self.splines:
                     for q in spline.vertices:
-                        for i in xrange(len(q)-2):
+                        """
+                        NOTE: the 6 is hardcoded from the hardcoded cross section...
+                        figure this out later...
+                        """
+                        for j in xrange(len(q)-6):
+                            i = j % len(q)
                             """
                             equal weighting - can weight by angle, but in the end
                             we are just making the normal for the STL files, not rendering
                             """
                             cur_normal = (q[i].normal
-                                          + q[i+1].normal
-                                          + q[i+2].normal)/3
+                                          + q[(i+1)%len(q)].normal
+                                          + q[(i+2)%len(q)].normal)
+                            cur_normal /= norm(cur_normal)
                             f.write("facet normal "+str(cur_normal[0])+" "
                                                    +str(cur_normal[1])+" "
                                                    +str(cur_normal[2])+"\n")
                             cur_v = (q[i].point,
-                                     q[i+1].point,
-                                     q[i+2].point)
+                                     q[(i+1)%len(q)].point,
+                                     q[(i+2)%len(q)].point)
 
                             """
                             Determine alignment
@@ -476,7 +482,7 @@ class OuterSurface(object):
                 max_splines = str(len(self.splines))
                 for spline in self.splines:
                     for q in spline.vertices:
-                        for i in xrange(len(q)-2):
+                        for i in xrange(len(q)-6):
                             """
                             equal weighting - can weight by angle, but in the end
                             we are just making the normal for the STL files, not 
@@ -537,18 +543,21 @@ class OuterSurface(object):
                 slen_n = str(len(normals))
                 slen_fs = str(len(faces))
 
+                print "\rSaving OBJ: Writing vertices",
                 for v in vertices:
                     vt = vertices[v]
                     f.write("v "+str(vt[0])+" "+str(vt[1])+" "+str(vt[2])+"\n")
-                    print "\r Saving OBJ: Writing vertices "+str(v)+"/"+slen_v,
-                    sys.stdout.flush()
+                    #print "\r Saving OBJ: Writing vertices "+str(v)+"/"+slen_v,
+                    #sys.stdout.flush()
 
+                print "\rSaving OBJ: Writing normals",
                 for n in normals:
                     nl = normals[n]
                     f.write("v "+str(nl[0])+" "+str(nl[1])+" "+str(nl[2])+"\n")
-                    print "\r Saving OBJ: Writing normals "+str(n)+"/"+slen_n,
-                    sys.stdout.flush()
+                    #print "\r Saving OBJ: Writing normals "+str(n)+"/"+slen_n,
+                    #sys.stdout.flush()
 
+                print "\rSaving OBJ: Writing faces",
                 for fs in faces:
                     fc = faces[fs]
                     """
@@ -557,8 +566,8 @@ class OuterSurface(object):
                     f.write("f "+str(fc[0][0])+"//"+str(fc[0][1])+" "
                                 +str(fc[1][0])+"//"+str(fc[1][1])+ " "
                                 +str(fc[2][0])+"//"+str(fc[2][1])+"\n")
-                    print "\r Saving OBJ: Writing faces "+str(fs)+"/"+slen_fs,
-                    sys.stdout.flush()
+                    #print "\r Saving OBJ: Writing faces "+str(fs)+"/"+slen_fs,
+                    #sys.stdout.flush()
 
 
 
