@@ -1,4 +1,4 @@
-from OpenGL.GL import * 
+from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
 from numpy import *
@@ -29,8 +29,8 @@ class ObjLoader(object):
         self.vox_version = VOXEL_FILE_VERSION
 
     def saveVox(self, filename):
-        dimensions = [len(self.voxelized), 
-                      len(self.voxelized[0]), 
+        dimensions = [len(self.voxelized),
+                      len(self.voxelized[0]),
                       len(self.voxelized[0][0])]
         with open(filename,"w") as f:
             f.write("knottyvox version "+str(self.vox_version)+"\n")
@@ -67,8 +67,8 @@ class ObjLoader(object):
                     print "Invalid file"
                     return False
 
-                dimensions = [int(meta_split[0]), 
-                              int(meta_split[1]), 
+                dimensions = [int(meta_split[0]),
+                              int(meta_split[1]),
                               int(meta_split[2])]
                 #+/- 1 for extra voxel given by rounding error
                 if abs(max(dimensions)-resolution) > 1:
@@ -78,7 +78,7 @@ class ObjLoader(object):
         except IOError as e:
             print "Voxel file not cached yet"
             return False
-    
+
     def loadVox(self, filename):
         with open(filename) as f:
             version_line = f.readline().rstrip("\n")
@@ -93,16 +93,16 @@ class ObjLoader(object):
                 version_split[1] != "version" or
                 version_split[2] != "1"):
                 print "Invalid file"
-                return 
+                return
 
-            dimensions = [int(meta_split[0]), 
-                          int(meta_split[1]), 
+            dimensions = [int(meta_split[0]),
+                          int(meta_split[1]),
                           int(meta_split[2])]
             voxel_size = float(meta_split[3])
             voxel_zero = [float(meta_split[4]),
                           float(meta_split[5]),
                           float(meta_split[6])]
-            
+
             self.voxel_dimension = array(voxel_size)
             self.voxel_zero = array(voxel_zero)
 
@@ -133,8 +133,8 @@ class ObjLoader(object):
                 values = line.rstrip("\n").split(" ")
                 if values[0] == "v":
                     vertices[cur_vert] = Vertex()
-                    vertices[cur_vert].position = array([float(values[1]), 
-                                                         float(values[2]), 
+                    vertices[cur_vert].position = array([float(values[1]),
+                                                         float(values[2]),
                                                          float(values[3])])
                     cur_vert += 1
         with open(filename) as f:
@@ -157,10 +157,10 @@ class ObjLoader(object):
                     cur_vert_n += 1
                 #face
                 elif values[0] == "f":
-                    vtn = map(lambda v: v.split("/"), 
+                    vtn = map(lambda v: v.split("/"),
                               [values[1], values[2], values[3]])
                     cur_face = Face()
-                    face_vertices = [vertices[int(vtn[0][0])], 
+                    face_vertices = [vertices[int(vtn[0][0])],
                                      vertices[int(vtn[1][0])],
                                      vertices[int(vtn[2][0])]]
                     if len(vtn[0]) > 1:
@@ -220,30 +220,30 @@ class ObjLoader(object):
             glPushMatrix()
             glMultMatrixd(self.voxelTransformation())
             glBegin(GL_QUADS)
-            total_iter = (len(self.voxelized) * 
-                    len(self.voxelized[0]) * 
+            total_iter = (len(self.voxelized) *
+                    len(self.voxelized[0]) *
                     len(self.voxelized[0][0]))
             ct = 1
             for i in xrange(len(self.voxelized)):
                 for j in xrange(len(self.voxelized[i])):
                     for k in xrange(len(self.voxelized[i][j])):
                         cur_voxel = self.voxelized[i][j][k]
-                        if cur_voxel.exists: 
+                        if cur_voxel.exists:
                             alpha = 1.0
                             #defining v from the center, and going ccw
                             #for each face starting with the "front" face's
                             #top right vertex
                             v= [ array([i+0.5, j+0.5, k-0.5]),
-                                 array([i-0.5, j+0.5, k-0.5]), 
-                                 array([i-0.5, j-0.5, k-0.5]), 
-                                 array([i+0.5, j-0.5, k-0.5]), 
-                                 array([i+0.5, j-0.5, k+0.5]), 
-                                 array([i+0.5, j+0.5, k+0.5]), 
-                                 array([i-0.5, j+0.5, k+0.5]), 
-                                 array([i-0.5, j-0.5, k+0.5]) ] 
+                                 array([i-0.5, j+0.5, k-0.5]),
+                                 array([i-0.5, j-0.5, k-0.5]),
+                                 array([i+0.5, j-0.5, k-0.5]),
+                                 array([i+0.5, j-0.5, k+0.5]),
+                                 array([i+0.5, j+0.5, k+0.5]),
+                                 array([i-0.5, j+0.5, k+0.5]),
+                                 array([i-0.5, j-0.5, k+0.5]) ]
 
                             #right face (positive x)
-                            glMaterialfv(GL_FRONT_AND_BACK, 
+                            glMaterialfv(GL_FRONT_AND_BACK,
                                     GL_AMBIENT_AND_DIFFUSE,
                                     [1.0,0.0,0.0,alpha])
                             glColor4f(1.0,0.0,0.0,alpha)
@@ -262,7 +262,7 @@ class ObjLoader(object):
                             glVertex3f(v[2][0], v[2][1], v[2][2])
 
                             #top face (positive y)
-                            glMaterialfv(GL_FRONT_AND_BACK, 
+                            glMaterialfv(GL_FRONT_AND_BACK,
                                     GL_AMBIENT_AND_DIFFUSE,
                                     [0.0,1.0,0.0,alpha])
                             glColor4f(0.0,1.0,0.0,alpha)
@@ -281,7 +281,7 @@ class ObjLoader(object):
                             glVertex3f(v[4][0], v[4][1], v[4][2])
 
                             #back face (positive z)
-                            glMaterialfv(GL_FRONT_AND_BACK, 
+                            glMaterialfv(GL_FRONT_AND_BACK,
                                     GL_AMBIENT_AND_DIFFUSE,
                                     [0.0,0.0,1.0,alpha])
                             glColor4f(0.0,0.0,1.0,alpha)
@@ -334,7 +334,7 @@ class ObjLoader(object):
         max_dist_dim = max(distance[0], distance[1], distance[2])
         cube_dimension = float(max_dist_dim)/resolution
         voxel_span = distance/cube_dimension
-        voxel_span = [int(voxel_span[0]+1.5), int(voxel_span[1]+1.5), 
+        voxel_span = [int(voxel_span[0]+1.5), int(voxel_span[1]+1.5),
                 int(voxel_span[2]+1.5)]
 
         self.voxel_dimension = cube_dimension
@@ -352,7 +352,7 @@ class ObjLoader(object):
 
     def boundaryVoxelization(self, voxel_span):
         #For each plane in XYZ, shoot rays and make voxels at intersections
-        
+
         #fill array with nonexistant voxels first
         for i in xrange(0, voxel_span[0]):
             if i not in self.voxelized:
@@ -392,7 +392,7 @@ class ObjLoader(object):
                     str(iter_count)+"/"+
                     str(total_iterations)),
                 sys.stdout.flush()
-        
+
         #XZ
         for i in xrange(0, voxel_span[0]):
             for k in xrange(0, voxel_span[2]):
@@ -453,7 +453,7 @@ class ObjLoader(object):
                         intersections.append((intersection
                             ,dot(prim.normal, winding_dir) < 0))
                 intersections = sorted(intersections, key=lambda x:x[0])
-                intersections = map(lambda x: (x[0]/self.voxel_dimension,x[1]), 
+                intersections = map(lambda x: (x[0]/self.voxel_dimension,x[1]),
                         intersections)
                 if self.use_xor:
                     prev = True

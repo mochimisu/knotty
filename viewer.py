@@ -230,7 +230,7 @@ def main():
 
     obj_loader = ObjLoader()
     obj_loader.use_xor = args.use_xor
-    obj_loader.use_boundaries = args.use_boundaries 
+    obj_loader.use_boundaries = args.use_boundaries
 
     outer_surface = OuterSurface(obj_loader)
     outer_surface.num_samples = args.num_samples
