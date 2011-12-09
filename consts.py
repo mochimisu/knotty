@@ -26,5 +26,4 @@ KNOTTY_ASCII_ART = (
 ",8OOOZZ$II?++==~,~++I                   \n"+
 " 88OOOO$$$III??+=??7                    \n"+
 "  ?D8OOOZZ$$7II?II                      \n"+
-"    ?8D8OO8Z$$$                         \n"+
-"                                        \n")
+"    ?8D8OO8Z$$$                         \n")

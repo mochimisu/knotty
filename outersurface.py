@@ -490,14 +490,14 @@ class OuterSurface(object):
                         for i in xrange(len(q)-6):
                             """
                             equal weighting - can weight by angle, but in the end
-                            we are just making the normal for the STL files, not 
+                            we are just making the normal for the STL files, not
                             rendering
                             """
                             cur_normals = (q[i].normal,
                                            q[i+1].normal,
                                            q[i+2].normal)
-                            cur_normal = (cur_normals[0] 
-                                          + cur_normals[1] 
+                            cur_normal = (cur_normals[0]
+                                          + cur_normals[1]
                                           + cur_normals[2])
                             cur_normal /= norm(cur_normal)
                             normals[cur_n] = cur_normals[0]
@@ -518,12 +518,12 @@ class OuterSurface(object):
                             cur_vertices_ordered = None
 
                             if dot(dir_norm, cur_normal) > 0:
-                                cur_vertices_ordered = (cur_vertices[0], 
-                                                        cur_vertices[1], 
+                                cur_vertices_ordered = (cur_vertices[0],
+                                                        cur_vertices[1],
                                                         cur_vertices[2])
                             else:
-                                cur_vertices_ordered = (cur_vertices[2], 
-                                                        cur_vertices[1], 
+                                cur_vertices_ordered = (cur_vertices[2],
+                                                        cur_vertices[1],
                                                         cur_vertices[0])
 
                             vertices[cur_v] = cur_vertices_ordered[0]
@@ -543,26 +543,27 @@ class OuterSurface(object):
                     print ("\rSaving OBJ: Populating arrays "+
                             str(cur_splines)+"/"+max_splines),
                     sys.stdout.flush()
+                    print ""
 
                 slen_v = str(len(vertices))
                 slen_n = str(len(normals))
                 slen_fs = str(len(faces))
 
-                print "\rSaving OBJ: Writing vertices"
+                print "Saving OBJ: Writing vertices"
                 for v in vertices:
                     vt = vertices[v]
                     f.write("v "+str(vt[0])+" "+str(vt[1])+" "+str(vt[2])+"\n")
                     #print "\r Saving OBJ: Writing vertices "+str(v)+"/"+slen_v,
                     #sys.stdout.flush()
 
-                print "\rSaving OBJ: Writing normals"
+                print "Saving OBJ: Writing normals"
                 for n in normals:
                     nl = normals[n]
                     f.write("v "+str(nl[0])+" "+str(nl[1])+" "+str(nl[2])+"\n")
                     #print "\r Saving OBJ: Writing normals "+str(n)+"/"+slen_n,
                     #sys.stdout.flush()
 
-                print "\rSaving OBJ: Writing faces"
+                print "Saving OBJ: Writing faces"
                 for fs in faces:
                     fc = faces[fs]
                     """
