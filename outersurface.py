@@ -458,6 +458,115 @@ class OuterSurface(object):
         except IOError as e:
             print "Could not save STL file: "+str(e)
 
+    def saveObj(self, filename):
+        try:
+            with open(filename,"w") as f:
+                vertices = {}
+                normals = {}
+                faces = {}
+
+                cur_v = 1
+                cur_n = 1
+                cur_f = 1
+
+                f.write("# knotty\n")
+                cur_triangles = 0
+                cur_splines = 0
+                max_splines = str(len(self.splines))
+                for spline in self.splines:
+                    for i in xrange(len(spline.vertices)-2):
+                        """
+                        equal weighting - can weight by angle, but in the end
+                        we are just making the normal for the STL files, not 
+                        rendering
+                        """
+                        cur_normals = (spline.vertices[i].normal,
+                                       spline.vertices[i+1].normal,
+                                       spline.vertices[i+2].normal)
+                        cur_normal = (cur_normals[0] 
+                                      + cur_normals[1] 
+                                      + cur_normals[2])
+                        cur_normal /= norm(cur_normal)
+                        normals[cur_n] = cur_normals[0]
+                        normals[cur_n+1] = cur_normals[1]
+                        normals[cur_n+2] = cur_normals[2]
+
+                        cur_vertices = (spline.vertices[i].point,
+                                        spline.vertices[i+1].point,
+                                        spline.vertices[i+2].point)
+
+                        """
+                        Determine alignment
+                        """
+
+                        dir1 = cur_vertices[1] - cur_vertices[0]
+                        dir2 = cur_vertices[2] - cur_vertices[0]
+                        dir_norm = cross(dir1, dir2)
+                        cur_vertices_ordered = None
+
+                        if dot(dir_norm, cur_normal) > 0:
+                            cur_vertices_ordered = (cur_vertices[0], 
+                                                    cur_vertices[1], 
+                                                    cur_vertices[2])
+                        else:
+                            cur_vertices_ordered = (cur_vertices[2], 
+                                                    cur_vertices[1], 
+                                                    cur_vertices[0])
+
+                        vertices[cur_v] = cur_vertices_ordered[0]
+                        vertices[cur_v+1] = cur_vertices_ordered[1]
+                        vertices[cur_v+2] = cur_vertices_ordered[2]
+
+                        faces[cur_f] = ((cur_v, cur_n),
+                                        (cur_v+1, cur_n+1),
+                                        (cur_v+2, cur_n+2))
+
+                        cur_v += 3
+                        cur_n += 3
+                        cur_f += 1
+
+                        cur_triangles += 1
+                    cur_splines += 1
+                    print ("\rSaving OBJ: Populating arrays "+
+                            str(cur_splines)+"/"+max_splines),
+                    sys.stdout.flush()
+
+                slen_v = str(len(vertices))
+                slen_n = str(len(normals))
+                slen_fs = str(len(faces))
+
+                for v in vertices:
+                    vt = vertices[v]
+                    f.write("v "+str(vt[0])+" "+str(vt[1])+" "+str(vt[2])+"\n")
+                    print "\r Saving OBJ: Writing vertices "+str(v)+"/"+slen_v,
+                    sys.stdout.flush()
+
+                for n in normals:
+                    nl = normals[n]
+                    f.write("v "+str(nl[0])+" "+str(nl[1])+" "+str(nl[2])+"\n")
+                    print "\r Saving OBJ: Writing normals "+str(n)+"/"+slen_n,
+                    sys.stdout.flush()
+
+                for fs in faces:
+                    fc = faces[fs]
+                    """
+                    We don't have textures
+                    """
+                    f.write("f "+str(fc[0][0])+"//"+str(fc[0][1])+" "
+                                +str(fc[1][0])+"//"+str(fc[1][1])+ " "
+                                +str(fc[2][0])+"//"+str(fc[2][1])+"\n")
+                    print "\r Saving OBJ: Writing faces "+str(fs)+"/"+slen_fs,
+                    sys.stdout.flush()
+
+
+
+                f.write("endsolid knotty\n")
+                print "\rSaving OBJ: Complete!"
+                print (str(filename)+" saved! ("+
+                        str(cur_triangles)+" triangles)")
+        except IOError as e:
+            print "Could not save OBJ file: "+str(e)
+
 
     def drawKnotsSpline(self):
         if not self.knot:

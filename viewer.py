@@ -275,7 +275,8 @@ def main():
         print filename_no_suffix+".kos loaded successfully!"
 
     if args.save_stl:
-        outer_surface.saveStl(filename_no_suffix+".stl")
+        outer_surface.saveStl(filename_no_suffix+"-knot.stl")
+        outer_surface.saveObj(filename_no_suffix+"-knot.obj")
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
