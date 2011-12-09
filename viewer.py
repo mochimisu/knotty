@@ -226,7 +226,7 @@ def main():
             help="Hate happiness")
 
     parser.add_argument("-c", "--cross_section_scale", dest="cs_scale",
-            nargs="?", type=int, default=0.1,
+            nargs="?", type=float, default=0.1,
             help="Cross section scale")
 
     parser.add_argument("--width", dest="width",
