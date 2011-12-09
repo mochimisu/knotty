@@ -24,6 +24,7 @@ class ObjLoader(object):
         self.use_xor = False
         self.voxel_zero = array([0,0,0])
         self.voxel_dimension = 1
+        self.supersampling_rate = 1
         ObjLoader.obj_class_id = ObjLoader.obj_class_id + 1
 
         self.vox_version = VOXEL_FILE_VERSION
@@ -332,13 +333,19 @@ class ObjLoader(object):
 
         distance = max_vertex_pos - min_vertex_pos
         max_dist_dim = max(distance[0], distance[1], distance[2])
-        cube_dimension = float(max_dist_dim)/resolution
+        cube_dimension = float(max_dist_dim)/(resolution
+                                              *self.supersampling_rate)
         voxel_span = distance/cube_dimension
-        voxel_span = [int(voxel_span[0]+1.5), int(voxel_span[1]+1.5),
-                int(voxel_span[2]+1.5)]
+        voxel_span = [int(voxel_span[0]+1.5),
+                      int(voxel_span[1]+1.5),
+                      int(voxel_span[2]+1.5)]
 
         self.voxel_dimension = cube_dimension
         self.voxel_zero = min_vertex_pos
+        ss = self.supersampling_rate
+
+        if ss > 1:
+            print "Supersampling at "+str(ss)+"x"
 
         print ("Creating voxelized object with resolution: ("+
                 str(voxel_span[0])+","+str(voxel_span[1])+","+
@@ -347,6 +354,69 @@ class ObjLoader(object):
             self.boundaryVoxelization(voxel_span)
         else:
             self.filledVoxelization(voxel_span)
+
+        supersampled = self.voxelized
+        self.voxelized = {}
+        cube_dimension_down = float(max_dist_dim)/resolution
+        voxel_span_down = distance/cube_dimension_down
+        voxel_span_down = [int(voxel_span_down[0]+1.5),
+                           int(voxel_span_down[1]+1.5),
+                           int(voxel_span_down[2]+1.5)]
+        total_iterations_down = (voxel_span_down[0]
+                                 *voxel_span_down[1]
+                                 *voxel_span_down[2])
+        ss_v = array(voxel_span) / array(voxel_span_down)
+        ss_v = [int((float)(voxel_span[0])/voxel_span_down[0]+0.99),
+                int((float)(voxel_span[1])/voxel_span_down[1]+0.99),
+                int((float)(voxel_span[2])/voxel_span_down[2]+0.99)]
+
+        self.voxel_dimension = cube_dimension_down
+
+        print ("Downsampling to resolution: ("+
+                str(voxel_span_down[0])+","+str(voxel_span_down[1])+","+
+                str(voxel_span_down[2])+")")
+        print ("Using multiplier: ("+str(ss_v[0])+", "+str(ss_v[1])+", "+
+                str(ss_v[2])+")")
+
+        iter_count = 0
+
+        for i in xrange(0, voxel_span_down[0]):
+            if i not in self.voxelized:
+                self.voxelized[i] = {}
+            for j in xrange(0, voxel_span_down[1]):
+                if j not in self.voxelized[i]:
+                    self.voxelized[i][j] = {}
+                for k in xrange(0, voxel_span_down[2]):
+                    if k not in self.voxelized[i][j]:
+                        self.voxelized[i][j][k] = {}
+                    new_vox = Voxel()
+                    new_vox.exists = False
+                    new_vox.pos = array([i,j,k])
+
+                    for x in xrange(ss_v[0]):
+                        for y in xrange(ss_v[1]):
+                            for z in xrange(ss_v[2]):
+                                ss_t_v = [i*ss_v[0]+x,
+                                          j*ss_v[1]+y,
+                                          k*ss_v[2]+z]
+                                if (ss_t_v[0] in supersampled
+                                    and ss_t_v[1] in supersampled[ss_t_v[0]]
+                                    and ss_t_v[2] in supersampled[ss_t_v[0]][
+                                                                    ss_t_v[1]]):
+                                    new_vox.exists |= (supersampled
+                                                        [i*ss_v[0]+x]
+                                                        [j*ss_v[1]+y]
+                                                        [k*ss_v[2]+z].exists)
+
+                    self.voxelized[i][j][k] = new_vox
+                    iter_count += 1
+                    print ("\rDownsampling: "+
+                            str(iter_count)+"/"+
+                            str(total_iterations_down)),
+
+        print ("\rDownsampling: "+
+                str(total_iterations_down)+"/"+
+                str(total_iterations_down)+"... Complete!")
 
         print "Created voxelized object!"
 
@@ -430,6 +500,7 @@ class ObjLoader(object):
                     str(iter_count)+"/"+
                     str(total_iterations)),
                 sys.stdout.flush()
+
         print "... Complete!"
 
     def filledVoxelization(self, voxel_span):
@@ -485,7 +556,7 @@ class ObjLoader(object):
                     new_vox.exists = (winding_number > 0)
                     new_vox.pos = array([i, j, k])
                     self.voxelized[i][j][k] = new_vox
-                    print ("\rVoxelization: "+
+                    print ("\rvoxelization: "+
                         str(i*voxel_span[1]+j)+"/"+
                         str(total_iterations)),#+
                         #", current winding number: "+

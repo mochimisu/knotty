@@ -195,6 +195,10 @@ def main():
     parser.add_argument("-l", "--force_new_kos", dest="new_kos",
             action="store_const", const=True, default=False)
 
+    parser.add_argument("-a", "--supersampling_rate", dest="supersample",
+            nargs="?", type=int, default=4, help=("Voxelization supersampling"+
+                                                  " rate"))
+
     parser.add_argument("-t", "--dont_save_stl", dest="save_stl",
             action="store_const", const=False, default=True)
 
@@ -213,7 +217,8 @@ def main():
         print "Winding Number"
 
     print "Resolution: "+str(args.resolution)
-    print "Sample Ratio: "+str(args.num_samples)
+    print "Sample Ratio: "+str(args.num_samples)+"x"
+    print "Supersampling rate: "+str(args.supersample)+"x"
 
     viewport.w = args.width
     viewport.h = args.height
@@ -231,6 +236,7 @@ def main():
     obj_loader = ObjLoader()
     obj_loader.use_xor = args.use_xor
     obj_loader.use_boundaries = args.use_boundaries
+    obj_loader.supersampling_rate = args.supersample
 
     outer_surface = OuterSurface(obj_loader)
     outer_surface.num_samples = args.num_samples
