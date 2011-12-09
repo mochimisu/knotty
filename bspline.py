@@ -177,6 +177,7 @@ class BSpline(object):
                 new_slice.append(pts[1].point + pt)
 
             if i > 1:
+                cur_vertices = []
                 for v in xrange(len(self.cross_section)):
                     vn = v % len(self.cross_section)
 
@@ -186,7 +187,7 @@ class BSpline(object):
                     tan0 /= norm(tan0)
                     new_point0.normal = -(cross(tan0, old_dir))
                     new_point0.point = old_slice[vn]
-                    self.vertices.append(new_point0)
+                    cur_vertices.append(new_point0)
 
                     new_point1 = SplinePoint()
                     tan1 = (new_slice[(vn+1)%len(self.cross_section)] -
@@ -194,7 +195,8 @@ class BSpline(object):
                     tan1 /= norm(tan1)
                     new_point1.normal = -(cross(tan1, direction))
                     new_point1.point = new_slice[vn]
-                    self.vertices.append(new_point1)
+                    cur_vertices.append(new_point1)
+                self.vertices.append(cur_vertices)
 
             old_slice = new_slice
             new_slice = []
@@ -235,49 +237,51 @@ class BSpline(object):
 
     def drawSpline(self):
         #add list later
-        glBegin(GL_QUAD_STRIP)
-        for p in self.vertices:
-            pt = p.point
-            n = p.normal
-            glNormal3f(n[0], n[1], n[2])
-            glVertex3f(pt[0], pt[1], pt[2])
-        glEnd()
+        for q in self.vertices:
+            glBegin(GL_QUAD_STRIP)
+            for p in q:
+                pt = p.point
+                n = p.normal
+                glNormal3f(n[0], n[1], n[2])
+                glVertex3f(pt[0], pt[1], pt[2])
+            glEnd()
 
     def drawSplineTriangle(self):
         """
         testing for quad->triangle for STL export
         """
         glBegin(GL_TRIANGLES)
-        for i in xrange(len(self.vertices)-2):
-            """
-            equal weighting - can weight by angle, but in the end
-            we are just making the normal for the STL files, not rendering
-            """
-            cur_normal = (self.vertices[i].normal
-                          + self.vertices[i+1].normal
-                          + self.vertices[i+2].normal)/3
-            glNormal3f(cur_normal[0], cur_normal[1], cur_normal[2])
-            cur_v = map(lambda v: v.point,
-                        (self.vertices[i],
-                         self.vertices[i+1],
-                         self.vertices[i+2]))
+        for q in self.vertices:
+            for i in xrange(len(q)-2):
+                """
+                equal weighting - can weight by angle, but in the end
+                we are just making the normal for the STL files, not rendering
+                """
+                cur_normal = (q[i].normal
+                              + q[i+1].normal
+                              + q[i+2].normal)/3
+                glNormal3f(cur_normal[0], cur_normal[1], cur_normal[2])
+                cur_v = map(lambda v: v.point,
+                            (q[i],
+                             q[i+1],
+                             q[i+2]))
 
-            """
-            Determine alignment
-            """
+                """
+                Determine alignment
+                """
 
-            dir1 = cur_v[1] - cur_v[0]
-            dir2 = cur_v[2] - cur_v[0]
-            dir_norm = cross(dir1, dir2)
+                dir1 = cur_v[1] - cur_v[0]
+                dir2 = cur_v[2] - cur_v[0]
+                dir_norm = cross(dir1, dir2)
 
-            if dot(dir_norm, cur_normal) > 0:
-                glVertex3f(cur_v[0][0], cur_v[0][1], cur_v[0][2])
-                glVertex3f(cur_v[1][0], cur_v[1][1], cur_v[1][2])
-                glVertex3f(cur_v[2][0], cur_v[2][1], cur_v[2][2])
-            else:
-                glVertex3f(cur_v[2][0], cur_v[2][1], cur_v[2][2])
-                glVertex3f(cur_v[1][0], cur_v[1][1], cur_v[1][2])
-                glVertex3f(cur_v[0][0], cur_v[0][1], cur_v[0][2])
+                if dot(dir_norm, cur_normal) > 0:
+                    glVertex3f(cur_v[0][0], cur_v[0][1], cur_v[0][2])
+                    glVertex3f(cur_v[1][0], cur_v[1][1], cur_v[1][2])
+                    glVertex3f(cur_v[2][0], cur_v[2][1], cur_v[2][2])
+                else:
+                    glVertex3f(cur_v[2][0], cur_v[2][1], cur_v[2][2])
+                    glVertex3f(cur_v[1][0], cur_v[1][1], cur_v[1][2])
+                    glVertex3f(cur_v[0][0], cur_v[0][1], cur_v[0][2])
 
         glEnd()
 

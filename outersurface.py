@@ -412,42 +412,43 @@ class OuterSurface(object):
                 cur_splines = 0
                 max_splines = str(len(self.splines))
                 for spline in self.splines:
-                    for i in xrange(len(spline.vertices)-2):
-                        """
-                        equal weighting - can weight by angle, but in the end
-                        we are just making the normal for the STL files, not rendering
-                        """
-                        cur_normal = (spline.vertices[i].normal
-                                      + spline.vertices[i+1].normal
-                                      + spline.vertices[i+2].normal)/3
-                        f.write("facet normal "+str(cur_normal[0])+" "
-                                               +str(cur_normal[1])+" "
-                                               +str(cur_normal[2])+"\n")
-                        cur_v = (spline.vertices[i].point,
-                                 spline.vertices[i+1].point,
-                                 spline.vertices[i+2].point)
+                    for q in spline.vertices:
+                        for i in xrange(len(q)-2):
+                            """
+                            equal weighting - can weight by angle, but in the end
+                            we are just making the normal for the STL files, not rendering
+                            """
+                            cur_normal = (q[i].normal
+                                          + q[i+1].normal
+                                          + q[i+2].normal)/3
+                            f.write("facet normal "+str(cur_normal[0])+" "
+                                                   +str(cur_normal[1])+" "
+                                                   +str(cur_normal[2])+"\n")
+                            cur_v = (q[i].point,
+                                     q[i+1].point,
+                                     q[i+2].point)
 
-                        """
-                        Determine alignment
-                        """
+                            """
+                            Determine alignment
+                            """
 
-                        dir1 = cur_v[1] - cur_v[0]
-                        dir2 = cur_v[2] - cur_v[0]
-                        dir_norm = cross(dir1, dir2)
-                        vertices = None
+                            dir1 = cur_v[1] - cur_v[0]
+                            dir2 = cur_v[2] - cur_v[0]
+                            dir_norm = cross(dir1, dir2)
+                            vertices = None
 
-                        if dot(dir_norm, cur_normal) > 0:
-                            vertices = (cur_v[0], cur_v[1], cur_v[2])
-                        else:
-                            vertices = (cur_v[2], cur_v[1], cur_v[0])
+                            if dot(dir_norm, cur_normal) > 0:
+                                vertices = (cur_v[0], cur_v[1], cur_v[2])
+                            else:
+                                vertices = (cur_v[2], cur_v[1], cur_v[0])
 
-                        f.write("outer loop\n")
-                        for v in cur_v:
-                            f.write("vertex "+str(v[0])+" "+str(v[1])+" "
-                                    +str(v[2])+"\n")
-                        f.write("endloop\n")
-                        f.write("endfacet\n")
-                        cur_triangles += 1
+                            f.write("outer loop\n")
+                            for v in cur_v:
+                                f.write("vertex "+str(v[0])+" "+str(v[1])+" "
+                                        +str(v[2])+"\n")
+                            f.write("endloop\n")
+                            f.write("endfacet\n")
+                            cur_triangles += 1
                     cur_splines += 1
                     print ("\rSaving STL: "+str(cur_splines)+"/"+max_splines),
                     sys.stdout.flush()
@@ -474,58 +475,59 @@ class OuterSurface(object):
                 cur_splines = 0
                 max_splines = str(len(self.splines))
                 for spline in self.splines:
-                    for i in xrange(len(spline.vertices)-2):
-                        """
-                        equal weighting - can weight by angle, but in the end
-                        we are just making the normal for the STL files, not 
-                        rendering
-                        """
-                        cur_normals = (spline.vertices[i].normal,
-                                       spline.vertices[i+1].normal,
-                                       spline.vertices[i+2].normal)
-                        cur_normal = (cur_normals[0] 
-                                      + cur_normals[1] 
-                                      + cur_normals[2])
-                        cur_normal /= norm(cur_normal)
-                        normals[cur_n] = cur_normals[0]
-                        normals[cur_n+1] = cur_normals[1]
-                        normals[cur_n+2] = cur_normals[2]
+                    for q in spline.vertices:
+                        for i in xrange(len(q)-2):
+                            """
+                            equal weighting - can weight by angle, but in the end
+                            we are just making the normal for the STL files, not 
+                            rendering
+                            """
+                            cur_normals = (q[i].normal,
+                                           q[i+1].normal,
+                                           q[i+2].normal)
+                            cur_normal = (cur_normals[0] 
+                                          + cur_normals[1] 
+                                          + cur_normals[2])
+                            cur_normal /= norm(cur_normal)
+                            normals[cur_n] = cur_normals[0]
+                            normals[cur_n+1] = cur_normals[1]
+                            normals[cur_n+2] = cur_normals[2]
 
-                        cur_vertices = (spline.vertices[i].point,
-                                        spline.vertices[i+1].point,
-                                        spline.vertices[i+2].point)
+                            cur_vertices = (q[i].point,
+                                            q[i+1].point,
+                                            q[i+2].point)
 
-                        """
-                        Determine alignment
-                        """
+                            """
+                            Determine alignment
+                            """
 
-                        dir1 = cur_vertices[1] - cur_vertices[0]
-                        dir2 = cur_vertices[2] - cur_vertices[0]
-                        dir_norm = cross(dir1, dir2)
-                        cur_vertices_ordered = None
+                            dir1 = cur_vertices[1] - cur_vertices[0]
+                            dir2 = cur_vertices[2] - cur_vertices[0]
+                            dir_norm = cross(dir1, dir2)
+                            cur_vertices_ordered = None
 
-                        if dot(dir_norm, cur_normal) > 0:
-                            cur_vertices_ordered = (cur_vertices[0], 
-                                                    cur_vertices[1], 
-                                                    cur_vertices[2])
-                        else:
-                            cur_vertices_ordered = (cur_vertices[2], 
-                                                    cur_vertices[1], 
-                                                    cur_vertices[0])
+                            if dot(dir_norm, cur_normal) > 0:
+                                cur_vertices_ordered = (cur_vertices[0], 
+                                                        cur_vertices[1], 
+                                                        cur_vertices[2])
+                            else:
+                                cur_vertices_ordered = (cur_vertices[2], 
+                                                        cur_vertices[1], 
+                                                        cur_vertices[0])
 
-                        vertices[cur_v] = cur_vertices_ordered[0]
-                        vertices[cur_v+1] = cur_vertices_ordered[1]
-                        vertices[cur_v+2] = cur_vertices_ordered[2]
+                            vertices[cur_v] = cur_vertices_ordered[0]
+                            vertices[cur_v+1] = cur_vertices_ordered[1]
+                            vertices[cur_v+2] = cur_vertices_ordered[2]
 
-                        faces[cur_f] = ((cur_v, cur_n),
-                                        (cur_v+1, cur_n+1),
-                                        (cur_v+2, cur_n+2))
+                            faces[cur_f] = ((cur_v, cur_n),
+                                            (cur_v+1, cur_n+1),
+                                            (cur_v+2, cur_n+2))
 
-                        cur_v += 3
-                        cur_n += 3
-                        cur_f += 1
+                            cur_v += 3
+                            cur_n += 3
+                            cur_f += 1
 
-                        cur_triangles += 1
+                            cur_triangles += 1
                     cur_splines += 1
                     print ("\rSaving OBJ: Populating arrays "+
                             str(cur_splines)+"/"+max_splines),
