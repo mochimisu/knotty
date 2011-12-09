@@ -418,14 +418,16 @@ class OuterSurface(object):
                     total_vertices += len(spline.vertices)
                     for q in spline.vertices:
                         """
-                        NOTE: the 6 is hardcoded from the hardcoded cross section...
+                        NOTE: the 6 is hardcoded from the hardcoded cross
+                        section...
                         figure this out later...
                         """
                         for j in xrange(len(q)-6):
                             i = j % len(q)
                             """
-                            equal weighting - can weight by angle, but in the end
-                            we are just making the normal for the STL files, not rendering
+                            equal weighting - can weight by angle, but in the
+                            end we are just making the normal for the STL
+                            files, not rendering
                             """
                             cur_normal = (q[i].normal
                                           + q[(i+1)%len(q)].normal
@@ -489,9 +491,9 @@ class OuterSurface(object):
                     for q in spline.vertices:
                         for i in xrange(len(q)-6):
                             """
-                            equal weighting - can weight by angle, but in the end
-                            we are just making the normal for the STL files, not
-                            rendering
+                            equal weighting - can weight by angle, but in the
+                            end we are just making the normal for the STL files,
+                            not endering
                             """
                             cur_normals = (q[i].normal,
                                            q[i+1].normal,
