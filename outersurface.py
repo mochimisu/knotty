@@ -543,7 +543,7 @@ class OuterSurface(object):
                     print ("\rSaving OBJ: Populating arrays "+
                             str(cur_splines)+"/"+max_splines),
                     sys.stdout.flush()
-                    print ""
+                print ""
 
                 slen_v = str(len(vertices))
                 slen_n = str(len(normals))
