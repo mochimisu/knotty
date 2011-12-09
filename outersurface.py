@@ -26,6 +26,7 @@ class OuterSurface(object):
         self.splines = []
         self.obj_loader = objloader
         self.num_samples = 1
+        self.cs_scale = 1
 
         #serialization check
         self.version = OUTER_SURFACE_FILE_VERSION
@@ -227,6 +228,7 @@ class OuterSurface(object):
             loaded_surface = pickle.load( open(filename, "rb"))
             if (loaded_surface.version == self.version and
                 loaded_surface.num_samples >= self.num_samples and
+                loaded_surface.cs_scale == self.cs_scale and
                 (obj_loader is None or (
                     (loaded_surface.obj_loader.voxel_dimension ==
                         obj_loader.voxel_dimension) and
@@ -394,7 +396,7 @@ class OuterSurface(object):
             loop_spline.generatePolyline()
             #loop_spline.cross_section = control_spline.control_points
             loop_spline.setBsplineCrossSection(control_spline)
-            loop_spline.generateSweepShape(0.1)
+            loop_spline.generateSweepShape(self.cs_scale)
             self.splines.append(loop_spline)
             print ("\rSpline Generation: "+
                     str(cur_loop_num)+"/"+
@@ -409,54 +411,178 @@ class OuterSurface(object):
             with open(filename,"w") as f:
                 f.write("solid knotty\n")
                 cur_triangles = 0
+                total_vertices = 0
                 cur_splines = 0
                 max_splines = str(len(self.splines))
                 for spline in self.splines:
-                    for i in xrange(len(spline.vertices)-2):
+                    total_vertices += len(spline.vertices)
+                    for q in spline.vertices:
                         """
-                        equal weighting - can weight by angle, but in the end
-                        we are just making the normal for the STL files, not rendering
+                        NOTE: the 6 is hardcoded from the hardcoded cross section...
+                        figure this out later...
                         """
-                        cur_normal = (spline.vertices[i].normal
-                                      + spline.vertices[i+1].normal
-                                      + spline.vertices[i+2].normal)/3
-                        f.write("facet normal "+str(cur_normal[0])+" "
-                                               +str(cur_normal[1])+" "
-                                               +str(cur_normal[2])+"\n")
-                        cur_v = (spline.vertices[i].point,
-                                 spline.vertices[i+1].point,
-                                 spline.vertices[i+2].point)
+                        for j in xrange(len(q)-6):
+                            i = j % len(q)
+                            """
+                            equal weighting - can weight by angle, but in the end
+                            we are just making the normal for the STL files, not rendering
+                            """
+                            cur_normal = (q[i].normal
+                                          + q[(i+1)%len(q)].normal
+                                          + q[(i+2)%len(q)].normal)
+                            cur_normal /= norm(cur_normal)
+                            f.write("facet normal "+str(cur_normal[0])+" "
+                                                   +str(cur_normal[1])+" "
+                                                   +str(cur_normal[2])+"\n")
+                            cur_v = (q[i].point,
+                                     q[(i+1)%len(q)].point,
+                                     q[(i+2)%len(q)].point)
 
-                        """
-                        Determine alignment
-                        """
+                            """
+                            Determine alignment
+                            """
 
-                        dir1 = cur_v[1] - cur_v[0]
-                        dir2 = cur_v[2] - cur_v[0]
-                        dir_norm = cross(dir1, dir2)
-                        vertices = None
+                            dir1 = cur_v[1] - cur_v[0]
+                            dir2 = cur_v[2] - cur_v[0]
+                            dir_norm = cross(dir1, dir2)
+                            vertices = None
 
-                        if dot(dir_norm, cur_normal) > 0:
-                            vertices = (cur_v[0], cur_v[1], cur_v[2])
-                        else:
-                            vertices = (cur_v[2], cur_v[1], cur_v[0])
+                            if dot(dir_norm, cur_normal) > 0:
+                                vertices = (cur_v[0], cur_v[1], cur_v[2])
+                            else:
+                                vertices = (cur_v[2], cur_v[1], cur_v[0])
 
-                        f.write("outer loop\n")
-                        for v in cur_v:
-                            f.write("vertex "+str(v[0])+" "+str(v[1])+" "
-                                    +str(v[2])+"\n")
-                        f.write("endloop\n")
-                        f.write("endfacet\n")
-                        cur_triangles += 1
+                            f.write("outer loop\n")
+                            for v in cur_v:
+                                f.write("vertex "+str(v[0])+" "+str(v[1])+" "
+                                        +str(v[2])+"\n")
+                            f.write("endloop\n")
+                            f.write("endfacet\n")
+                            cur_triangles += 1
                     cur_splines += 1
                     print ("\rSaving STL: "+str(cur_splines)+"/"+max_splines),
                     sys.stdout.flush()
                 f.write("endsolid knotty\n")
                 print "\rSaving STL: "+max_splines+"/"+max_splines
                 print (str(filename)+" saved! ("+
+                        str(total_vertices)+" vertices, "+
                         str(cur_triangles)+" triangles)")
         except IOError as e:
             print "Could not save STL file: "+str(e)
+
+    def saveObj(self, filename):
+        try:
+            with open(filename,"w") as f:
+                vertices = {}
+                normals = {}
+                faces = {}
+
+                cur_v = 1
+                cur_n = 1
+                cur_f = 1
+
+                f.write("# knotty\n")
+                cur_triangles = 0
+                cur_splines = 0
+                max_splines = str(len(self.splines))
+                for spline in self.splines:
+                    for q in spline.vertices:
+                        for i in xrange(len(q)-6):
+                            """
+                            equal weighting - can weight by angle, but in the end
+                            we are just making the normal for the STL files, not
+                            rendering
+                            """
+                            cur_normals = (q[i].normal,
+                                           q[i+1].normal,
+                                           q[i+2].normal)
+                            cur_normal = (cur_normals[0]
+                                          + cur_normals[1]
+                                          + cur_normals[2])
+                            cur_normal /= norm(cur_normal)
+                            normals[cur_n] = cur_normals[0]
+                            normals[cur_n+1] = cur_normals[1]
+                            normals[cur_n+2] = cur_normals[2]
+
+                            cur_vertices = (q[i].point,
+                                            q[i+1].point,
+                                            q[i+2].point)
+
+                            """
+                            Determine alignment
+                            """
+
+                            dir1 = cur_vertices[1] - cur_vertices[0]
+                            dir2 = cur_vertices[2] - cur_vertices[0]
+                            dir_norm = cross(dir1, dir2)
+                            cur_vertices_ordered = None
+
+                            if dot(dir_norm, cur_normal) > 0:
+                                cur_vertices_ordered = (cur_vertices[0],
+                                                        cur_vertices[1],
+                                                        cur_vertices[2])
+                            else:
+                                cur_vertices_ordered = (cur_vertices[2],
+                                                        cur_vertices[1],
+                                                        cur_vertices[0])
+
+                            vertices[cur_v] = cur_vertices_ordered[0]
+                            vertices[cur_v+1] = cur_vertices_ordered[1]
+                            vertices[cur_v+2] = cur_vertices_ordered[2]
+
+                            faces[cur_f] = ((cur_v, cur_n),
+                                            (cur_v+1, cur_n+1),
+                                            (cur_v+2, cur_n+2))
+
+                            cur_v += 3
+                            cur_n += 3
+                            cur_f += 1
+
+                            cur_triangles += 1
+                    cur_splines += 1
+                    print ("\rSaving OBJ: Populating arrays "+
+                            str(cur_splines)+"/"+max_splines),
+                    sys.stdout.flush()
+                print ""
+
+                slen_v = str(len(vertices))
+                slen_n = str(len(normals))
+                slen_fs = str(len(faces))
+
+                print "Saving OBJ: Writing vertices"
+                for v in vertices:
+                    vt = vertices[v]
+                    f.write("v "+str(vt[0])+" "+str(vt[1])+" "+str(vt[2])+"\n")
+                    #print "\r Saving OBJ: Writing vertices "+str(v)+"/"+slen_v,
+                    #sys.stdout.flush()
+
+                print "Saving OBJ: Writing normals"
+                for n in normals:
+                    nl = normals[n]
+                    f.write("v "+str(nl[0])+" "+str(nl[1])+" "+str(nl[2])+"\n")
+                    #print "\r Saving OBJ: Writing normals "+str(n)+"/"+slen_n,
+                    #sys.stdout.flush()
+
+                print "Saving OBJ: Writing faces"
+                for fs in faces:
+                    fc = faces[fs]
+                    """
+                    We don't have textures
+                    """
+                    f.write("f "+str(fc[0][0])+"//"+str(fc[0][1])+" "
+                                +str(fc[1][0])+"//"+str(fc[1][1])+ " "
+                                +str(fc[2][0])+"//"+str(fc[2][1])+"\n")
+                    #print "\r Saving OBJ: Writing faces "+str(fs)+"/"+slen_fs,
+                    #sys.stdout.flush()
+
+
+
+                f.write("endsolid knotty\n")
+                print (str(filename)+" saved! ("+
+                        str(slen_v)+" vertices, "+
+                        str(slen_fs)+" triangles)")
+        except IOError as e:
+            print "Could not save OBJ file: "+str(e)
 
 
     def drawKnotsSpline(self):

@@ -8,6 +8,7 @@ from numpy.linalg import *
 from objloader import *
 from outersurface import *
 from bspline import *
+from consts import *
 import sys
 import argparse
 
@@ -174,35 +175,75 @@ def main():
     parser = argparse.ArgumentParser(description="Knotify some OBJs.")
     parser.add_argument("object_file", metavar ="obj", default="teapot.obj",
             help="OBJ or KVOX file")
+
     parser.add_argument("--xor", dest="use_xor", action="store_const",
             const=True, default=False,
             help="Use XOR instead of Winding Number")
+
     parser.add_argument("-b", "--boundaries", dest="use_boundaries",
-        action="store_const", const=True, default=False,
-        help=("Use only boundary voxels in voxelization (more expensive, but"+
-              " can handle non-nice objects)"))
+            action="store_const", const=True, default=False,
+            help=("Use only boundary voxels in voxelization (more expensive, "+
+              "but can handle non-nice objects)"))
+
     parser.add_argument("-r", "--resolution", dest="resolution",
-            nargs="?", type=int, default=50, help="Voxelization resolution")
+            nargs="?", type=int, default=50, 
+            help="Voxelization resolution")
+
     parser.add_argument("-s", "--samples", dest="num_samples",
-            nargs="?", type=int, default=2, help=("Number of samples on "+
-                                                   "spline per control point"))
+            nargs="?", type=int, default=2,
+            help="Number of samples on spline per control point")
+
     parser.add_argument("-d", "--dont_save_vox", dest="save_vox",
-            action="store_const", const=False, default=True)
+            action="store_const", const=False, default=True,
+            help="Don't save voxel cache")
+
     parser.add_argument("-k", "--dont_save_kos", dest="save_kos",
-            action="store_const", const=False, default=True)
+            action="store_const", const=False, default=True,
+            help="Don't save spline cache")
+
     parser.add_argument("-f", "--force_new_vox", dest="new_vox",
-            action="store_const", const=True, default=False)
+            action="store_const", const=True, default=False,
+            help="Force new voxel cache")
+
     parser.add_argument("-l", "--force_new_kos", dest="new_kos",
-            action="store_const", const=True, default=False)
+            action="store_const", const=True, default=False,
+            help="Force new spline cache")
+
+    parser.add_argument("-a", "--supersampling_rate", dest="supersample",
+            nargs="?", type=int, default=4,
+            help="Voxelization supersampling rate")
 
     parser.add_argument("-t", "--dont_save_stl", dest="save_stl",
-            action="store_const", const=False, default=True)
+            action="store_const", const=False, default=True,
+            help="Don't save STL file")
+
+    parser.add_argument("-j", "--dont_save_obj", dest="save_obj",
+            action="store_const", const=False, default=True,
+            help="Don't save OBJ file")
+
+    parser.add_argument("-n", "--dont_print_logo", dest="print_logo",
+            action="store_const", const=False, default=True,
+            help="Hate happiness")
+
+    parser.add_argument("-c", "--cross_section_scale", dest="cs_scale",
+            nargs="?", type=float, default=0.1,
+            help="Cross section scale")
 
     parser.add_argument("--width", dest="width",
-            nargs="?", type=int, default=640, help="Viewport width")
+            nargs="?", type=int, default=640,
+            help="Viewport width")
+
     parser.add_argument("--height", dest="height",
-            nargs="?", type=int, default=480, help="Viewport height")
+            nargs="?", type=int, default=480,
+            help="Viewport height")
+
     args = parser.parse_args()
+
+    if args.print_logo:
+        print KNOTTY_ASCII_ART
+    print "CS285 Fa11 Final Project: Knotty"
+    print "Brandon Wang and Andrew Lee"
+    print "===="
 
     print "Inside-outside test:",
     if args.use_boundaries:
@@ -211,9 +252,11 @@ def main():
         print "XOR"
     else:
         print "Winding Number"
-
     print "Resolution: "+str(args.resolution)
-    print "Sample Ratio: "+str(args.num_samples)
+    print "Cross Section Scale: "+str(args.cs_scale)
+    print "Sample Ratio: "+str(args.num_samples)+"x"
+    print "Supersampling rate: "+str(args.supersample)+"x"
+    print "===="
 
     viewport.w = args.width
     viewport.h = args.height
@@ -230,10 +273,12 @@ def main():
 
     obj_loader = ObjLoader()
     obj_loader.use_xor = args.use_xor
-    obj_loader.use_boundaries = args.use_boundaries 
+    obj_loader.use_boundaries = args.use_boundaries
+    obj_loader.supersampling_rate = args.supersample
 
     outer_surface = OuterSurface(obj_loader)
     outer_surface.num_samples = args.num_samples
+    outer_surface.cs_scale = args.cs_scale
 
     loaded_outer_surface = False
     if filename_suffix == "obj":
@@ -275,7 +320,9 @@ def main():
         print filename_no_suffix+".kos loaded successfully!"
 
     if args.save_stl:
-        outer_surface.saveStl(filename_no_suffix+".stl")
+        outer_surface.saveStl(filename_no_suffix+"-knot.stl")
+    if args.save_obj:
+        outer_surface.saveObj(filename_no_suffix+"-knot.obj")
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
@@ -290,6 +337,7 @@ def main():
     glLightfv(GL_LIGHT0, GL_DIFFUSE, [1,1,1,1])
     glLightfv(GL_LIGHT0, GL_POSITION, [1, 1, 1, 0])
     glEnable(GL_LIGHT0)
+    glEnable(GL_CULL_FACE)
 
     glLineWidth(2)
 
