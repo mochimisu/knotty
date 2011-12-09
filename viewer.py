@@ -201,6 +201,8 @@ def main():
 
     parser.add_argument("-t", "--dont_save_stl", dest="save_stl",
             action="store_const", const=False, default=True)
+    parser.add_argument("-j", "--dont_save_obj", dest="save_obj",
+            action="store_const", const=False, default=True)
 
     parser.add_argument("--width", dest="width",
             nargs="?", type=int, default=640, help="Viewport width")
@@ -282,6 +284,7 @@ def main():
 
     if args.save_stl:
         outer_surface.saveStl(filename_no_suffix+"-knot.stl")
+    if args.save_obj:
         outer_surface.saveObj(filename_no_suffix+"-knot.obj")
 
     glutDisplayFunc(drawScene)

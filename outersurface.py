@@ -409,9 +409,11 @@ class OuterSurface(object):
             with open(filename,"w") as f:
                 f.write("solid knotty\n")
                 cur_triangles = 0
+                total_vertices = 0
                 cur_splines = 0
                 max_splines = str(len(self.splines))
                 for spline in self.splines:
+                    total_vertices += len(spline.vertices)
                     for q in spline.vertices:
                         """
                         NOTE: the 6 is hardcoded from the hardcoded cross section...
@@ -461,6 +463,7 @@ class OuterSurface(object):
                 f.write("endsolid knotty\n")
                 print "\rSaving STL: "+max_splines+"/"+max_splines
                 print (str(filename)+" saved! ("+
+                        str(total_vertices)+" vertices, "+
                         str(cur_triangles)+" triangles)")
         except IOError as e:
             print "Could not save STL file: "+str(e)
@@ -543,21 +546,21 @@ class OuterSurface(object):
                 slen_n = str(len(normals))
                 slen_fs = str(len(faces))
 
-                print "\rSaving OBJ: Writing vertices",
+                print "\rSaving OBJ: Writing vertices"
                 for v in vertices:
                     vt = vertices[v]
                     f.write("v "+str(vt[0])+" "+str(vt[1])+" "+str(vt[2])+"\n")
                     #print "\r Saving OBJ: Writing vertices "+str(v)+"/"+slen_v,
                     #sys.stdout.flush()
 
-                print "\rSaving OBJ: Writing normals",
+                print "\rSaving OBJ: Writing normals"
                 for n in normals:
                     nl = normals[n]
                     f.write("v "+str(nl[0])+" "+str(nl[1])+" "+str(nl[2])+"\n")
                     #print "\r Saving OBJ: Writing normals "+str(n)+"/"+slen_n,
                     #sys.stdout.flush()
 
-                print "\rSaving OBJ: Writing faces",
+                print "\rSaving OBJ: Writing faces"
                 for fs in faces:
                     fc = faces[fs]
                     """
@@ -572,9 +575,9 @@ class OuterSurface(object):
 
 
                 f.write("endsolid knotty\n")
-                print "\rSaving OBJ: Complete!"
                 print (str(filename)+" saved! ("+
-                        str(cur_triangles)+" triangles)")
+                        str(slen_v)+" vertices, "+
+                        str(slen_fs)+" triangles)")
         except IOError as e:
             print "Could not save OBJ file: "+str(e)
 
