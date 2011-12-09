@@ -8,6 +8,7 @@ from numpy.linalg import *
 from objloader import *
 from outersurface import *
 from bspline import *
+from consts import *
 import sys
 import argparse
 
@@ -194,21 +195,28 @@ def main():
             action="store_const", const=True, default=False)
     parser.add_argument("-l", "--force_new_kos", dest="new_kos",
             action="store_const", const=True, default=False)
-
     parser.add_argument("-a", "--supersampling_rate", dest="supersample",
             nargs="?", type=int, default=4, help=("Voxelization supersampling"+
                                                   " rate"))
-
     parser.add_argument("-t", "--dont_save_stl", dest="save_stl",
             action="store_const", const=False, default=True)
     parser.add_argument("-j", "--dont_save_obj", dest="save_obj",
             action="store_const", const=False, default=True)
-
+    parser.add_argument("-n", "--dont_print_logo", dest="print_logo",
+            action="store_const", const=False, default=True)
+    parser.add_argument("-c", "--cross_section_scale", dest="cs_scale",
+            nargs="?", type=int, default=0.1, help=("Cross section scale"))
     parser.add_argument("--width", dest="width",
             nargs="?", type=int, default=640, help="Viewport width")
     parser.add_argument("--height", dest="height",
             nargs="?", type=int, default=480, help="Viewport height")
     args = parser.parse_args()
+
+    if args.print_logo:
+        print KNOTTY_ASCII_ART
+    print "CS285 Fa11 Final Project: Knotty"
+    print "Brandon Wang and Andrew Lee"
+    print "===="
 
     print "Inside-outside test:",
     if args.use_boundaries:
@@ -217,10 +225,11 @@ def main():
         print "XOR"
     else:
         print "Winding Number"
-
     print "Resolution: "+str(args.resolution)
+    print "Cross Section Scale: "+str(args.cs_scale)
     print "Sample Ratio: "+str(args.num_samples)+"x"
     print "Supersampling rate: "+str(args.supersample)+"x"
+    print "===="
 
     viewport.w = args.width
     viewport.h = args.height
@@ -242,6 +251,7 @@ def main():
 
     outer_surface = OuterSurface(obj_loader)
     outer_surface.num_samples = args.num_samples
+    outer_surface.cs_scale = args.cs_scale
 
     loaded_outer_surface = False
     if filename_suffix == "obj":

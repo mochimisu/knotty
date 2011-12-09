@@ -26,6 +26,7 @@ class OuterSurface(object):
         self.splines = []
         self.obj_loader = objloader
         self.num_samples = 1
+        self.cs_scale = 1
 
         #serialization check
         self.version = OUTER_SURFACE_FILE_VERSION
@@ -227,6 +228,7 @@ class OuterSurface(object):
             loaded_surface = pickle.load( open(filename, "rb"))
             if (loaded_surface.version == self.version and
                 loaded_surface.num_samples >= self.num_samples and
+                loaded_surface.cs_scale == self.cs_scale and
                 (obj_loader is None or (
                     (loaded_surface.obj_loader.voxel_dimension ==
                         obj_loader.voxel_dimension) and
@@ -394,7 +396,7 @@ class OuterSurface(object):
             loop_spline.generatePolyline()
             #loop_spline.cross_section = control_spline.control_points
             loop_spline.setBsplineCrossSection(control_spline)
-            loop_spline.generateSweepShape(0.1)
+            loop_spline.generateSweepShape(self.cs_scale)
             self.splines.append(loop_spline)
             print ("\rSpline Generation: "+
                     str(cur_loop_num)+"/"+
