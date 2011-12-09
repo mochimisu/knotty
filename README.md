@@ -26,8 +26,13 @@ CS285 Project - Brandon Wang, Andrew Lee
 * Patterning:
   * Up and down control points specified
   * Control points to spline
+
+* Polygon:
   * Spline to polygon
+	* Watertight polygon
+	* Polygon to STL
+  * Polygon to OBJ
 
 ###Not Done
-* Watertight polygon
-* Polygon to STL
+* Eulerian path construction (Single thread)
+* Extensions to non-axis-aligned shapes (Triangles, quads)
