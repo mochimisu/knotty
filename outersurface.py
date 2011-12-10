@@ -360,11 +360,9 @@ class OuterSurface(object):
         self.knot = Knot()
         
         path = [path[-2]] + path + [path[1]]
-        print path
         
         for i in xrange(1, len(path), 2):
             segment = generateSegment(path[i-1], path[i], path[i+1])
-            print segment
             self.knot.addSequence(segment)
         
 
