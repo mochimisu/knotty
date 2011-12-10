@@ -8,6 +8,52 @@ from numpy import *
 from bspline import *
 import math
 import cPickle as pickle
+import graph
+
+def sharedEdge(face1, face2):
+    x1, y1, z1 = face1
+    if type(x1) is float:
+         edges1 = [(x1, y1 - 0.5, z1),
+                   (x1, y1 + 0.5, z1),
+                   (x1, y1, z1 - 0.5),
+                   (x1, y1, z1 + 0.5),
+                   ]
+    elif type(y1) is float:
+         edges1 = [(x1 - 0.5, y1, z1),
+                   (x1 + 0.5, y1, z1),
+                   (x1, y1, z1 - 0.5),
+                   (x1, y1, z1 + 0.5),
+                   ]
+    else:
+         edges1 = [(x1, y1 - 0.5, z1),
+                   (x1, y1 + 0.5, z1),
+                   (x1 - 0.5, y1, z1),
+                   (x1 + 0.5, y1, z1),
+                   ]
+    x2, y2, z2 = face2
+    if type(x2) is float:
+         edges2 = [(x2, y2 - 0.5, z2),
+                   (x2, y2 + 0.5, z2),
+                   (x2, y2, z2 - 0.5),
+                   (x2, y2, z2 + 0.5),
+                   ]
+    elif type(y2) is float:
+         edges2 = [(x2 - 0.5, y2, z2),
+                   (x2 + 0.5, y2, z2),
+                   (x2, y2, z2 - 0.5),
+                   (x2, y2, z2 + 0.5),
+                   ]
+    else:
+         edges2 = [(x2, y2 - 0.5, z2),
+                   (x2, y2 + 0.5, z2),
+                   (x2 - 0.5, y2, z2),
+                   (x2 + 0.5, y2, z2),
+                   ]
+    edges = [edge for edge in edges1 if edge in edges2]
+    if edges:
+        return edges[0]
+    else:
+        return None
 
 class OuterSurface(object):
 
@@ -23,6 +69,7 @@ class OuterSurface(object):
         self.knots_spline_control_list = None
         self.knots_spline_triangle_list = None
         self.knot = None
+        self.graph = graph.Graph()
         self.splines = []
         self.obj_loader = objloader
         self.num_samples = 1
@@ -143,9 +190,11 @@ class OuterSurface(object):
                             ]
 
             for test in tests:
-                for face, dir in test:
-                    if face in face_dir and dir == face_dir[face]:
-                        new_surface_faces.add(face)
+                for test_face, test_dir in test:
+                    if test_face in face_dir and test_dir == face_dir[test_face]:
+                        new_surface_faces.add(test_face)
+                        edge = sharedEdge(face, test_face)
+                        self.graph.addEdge(face, edge)
                         break
 
             faces_to_crawl.extend(new_surface_faces)
@@ -156,68 +205,18 @@ class OuterSurface(object):
         print "Finished finding outer surface"
 
     def applyKnots(self):
+        """
+        Find Eulerian path
+        """
+        
+        print "Solving Eulerian path..."
+        eulerian = graph.EulerianPath(self.graph)
+        path = eulerian.solve()
+        print "Eulerian path found."
+        
         self.knot = Knot()
-
-        direction_dict = {Directions.POSX: (1, 0, 0),
-                          Directions.POSY: (0, 1, 0),
-                          Directions.POSZ: (0, 0, 1),
-                          Directions.NEGX: (-1, 0, 0),
-                          Directions.NEGY: (0, -1, 0),
-                          Directions.NEGZ: (0, 0, -1),
-                          }
-
-        for face, dir in self.surface_faces.items():
-            dir = direction_dict[dir]
-
-            x, y, z = face
-
-            if type(x) == float:
-                x = int(x - dir[0]*0.5)
-                sign = 0.3 * (((x + y + z) % 2) - 0.5)
-
-                seq = [(x + 0.5*dir[0], y-0.5, z),
-                       (x + (0.5 + sign)*dir[0], y, z),
-                       (x + 0.5*dir[0], y+0.5, z),
-                       ]
-                self.knot.addSequence(seq)
-
-                seq = [(x + 0.5*dir[0], y, z-0.5),
-                       (x + (0.5 - sign)*dir[0], y, z),
-                       (x + 0.5*dir[0], y, z+0.5),
-                       ]
-                self.knot.addSequence(seq)
-            elif type(y) == float:
-                y = int(y - dir[1]*0.5)
-                sign = 0.3 * (((x + y + z) % 2) - 0.5)
-
-                seq = [(x, y + 0.5*dir[1], z-0.5),
-                       (x, y + (0.5 + sign)*dir[1], z),
-                       (x, y + 0.5*dir[1], z+0.5),
-                       ]
-                self.knot.addSequence(seq)
-
-                seq = [(x-0.5, y + 0.5*dir[1], z),
-                       (x, y + (0.5 - sign)*dir[1], z),
-                       (x+0.5, y + 0.5*dir[1], z),
-                       ]
-                self.knot.addSequence(seq)
-            else:
-                z = int(z - dir[2]*0.5)
-                sign = 0.3 * (((x + y + z) % 2) - 0.5)
-
-                seq = [(x-0.5, y, z + 0.5*dir[2]),
-                       (x, y, z + (0.5 + sign)*dir[2]),
-                       (x+0.5, y, z + 0.5*dir[2]),
-                       ]
-                self.knot.addSequence(seq)
-
-                seq = [(x, y-0.5, z + 0.5*dir[2]),
-                       (x, y, z + (0.5 - sign)*dir[2]),
-                       (x, y+0.5, z + 0.5*dir[2]),
-                       ]
-                self.knot.addSequence(seq)
-        for a, b in self.knot.open_loops.items():
-            print a, ':', b
+        self.knot.addSequence(path)
+        
 
     """
     Right now, this is done through pickle.

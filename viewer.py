@@ -11,6 +11,9 @@ from bspline import *
 from consts import *
 import sys
 import argparse
+import graph
+
+import knots
 
 class Viewport(object):
     def __init__(self):
