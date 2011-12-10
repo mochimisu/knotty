@@ -55,6 +55,149 @@ def sharedEdge(face1, face2):
     else:
         return None
 
+OFFSET = 0.3
+
+def generateSegment(prev, cur, next):
+    x_cur, y_cur, z_cur = cur
+    x_prev, y_prev, z_prev = prev
+    x_next, y_next, z_next = next
+    x_prev -= x_cur
+    y_prev -= y_cur
+    z_prev -= z_cur
+    x_next -= x_cur
+    y_next -= y_cur
+    z_next -= z_cur
+    
+    sign = 1 - 2 * (abs(x_cur + y_cur + z_cur - 0.5) % 2)
+    if abs(x_cur) % 1.0 == 0.5: # x-normal
+        if ((y_prev == -0.5 and y_next == 0.5) or
+            (y_next == -0.5 and y_prev == 0.5)):
+            return [(x_cur, y_cur - 0.5, z_cur),
+                    (x_cur + OFFSET * sign, y_cur, z_cur),
+                    (x_cur, y_cur + 0.5, z_cur),
+                    ]
+        elif ((z_prev == -0.5 and z_next == 0.5) or
+              (z_next == -0.5 and z_prev == 0.5)):
+            return [(x_cur, y_cur, z_cur - 0.5),
+                    (x_cur - OFFSET * sign, y_cur, z_cur),
+                    (x_cur, y_cur, z_cur + 0.5),
+                    ]
+        elif ((z_prev == 0.5 and y_next == 0.5) or
+              (z_next == 0.5 and y_prev == 0.5)):
+            return [(x_cur, y_cur, z_cur + 0.5),
+                    (x_cur - OFFSET * sign, y_cur - 0.25, z_cur - 0.25),
+                    (x_cur + OFFSET * sign, y_cur - 0.25, z_cur - 0.25),
+                    (x_cur, y_cur + 0.5, z_cur),
+                    ]
+        elif ((z_prev == -0.5 and y_next == 0.5) or
+              (z_next == -0.5 and y_prev == 0.5)):
+            return [(x_cur, y_cur, z_cur - 0.5),
+                    (x_cur - OFFSET * sign, y_cur - 0.25, z_cur + 0.25),
+                    (x_cur + OFFSET * sign, y_cur - 0.25, z_cur + 0.25),
+                    (x_cur, y_cur + 0.5, z_cur),
+                    ]
+        elif ((z_prev == -0.5 and y_next == -0.5) or
+              (z_next == -0.5 and y_prev == -0.5)):
+            return [(x_cur, y_cur, z_cur - 0.5),
+                    (x_cur - OFFSET * sign, y_cur + 0.25, z_cur + 0.25),
+                    (x_cur + OFFSET * sign, y_cur + 0.25, z_cur + 0.25),
+                    (x_cur, y_cur - 0.5, z_cur),
+                    ]
+        elif ((z_prev == 0.5 and y_next == -0.5) or
+              (z_next == 0.5 and y_prev == -0.5)):
+            return [(x_cur, y_cur, z_cur + 0.5),
+                    (x_cur - OFFSET * sign, y_cur + 0.25, z_cur - 0.25),
+                    (x_cur + OFFSET * sign, y_cur + 0.25, z_cur - 0.25),
+                    (x_cur, y_cur - 0.5, z_cur),
+                    ]
+    elif abs(y_cur) % 1.0 == 0.5: # y-normal
+        if ((x_prev == -0.5 and x_next == 0.5) or
+            (x_next == -0.5 and x_prev == 0.5)):
+            return [(x_cur - 0.5, y_cur, z_cur),
+                    (x_cur, y_cur - OFFSET * sign, z_cur),
+                    (x_cur + 0.5, y_cur, z_cur),
+                    ]
+        elif ((z_prev == -0.5 and z_next == 0.5) or
+              (z_next == -0.5 and z_prev == 0.5)):
+            return [(x_cur, y_cur, z_cur - 0.5),
+                    (x_cur, y_cur + OFFSET * sign, z_cur),
+                    (x_cur, y_cur, z_cur + 0.5),
+                    ]
+        elif ((z_prev == 0.5 and x_next == 0.5) or
+              (z_next == 0.5 and x_prev == 0.5)):
+            return [(x_cur, y_cur, z_cur + 0.5),
+                    (x_cur - 0.25, y_cur + OFFSET * sign, z_cur - 0.25),
+                    (x_cur - 0.25, y_cur - OFFSET * sign, z_cur - 0.25),
+                    (x_cur + 0.5, y_cur, z_cur),
+                    ]
+        elif ((z_prev == -0.5 and x_next == 0.5) or
+              (z_next == -0.5 and x_prev == 0.5)):
+            return [(x_cur, y_cur, z_cur - 0.5),
+                    (x_cur - 0.25, y_cur + OFFSET * sign, z_cur + 0.25),
+                    (x_cur - 0.25, y_cur - OFFSET * sign, z_cur + 0.25),
+                    (x_cur + 0.5, y_cur, z_cur),
+                    ]
+        elif ((z_prev == -0.5 and x_next == -0.5) or
+              (z_next == -0.5 and x_prev == -0.5)):
+            return [(x_cur, y_cur, z_cur - 0.5),
+                    (x_cur + 0.25, y_cur + OFFSET * sign, z_cur + 0.25),
+                    (x_cur + 0.25, y_cur - OFFSET * sign, z_cur + 0.25),
+                    (x_cur - 0.5, y_cur, z_cur),
+                    ]
+        elif ((z_prev == 0.5 and x_next == -0.5) or
+              (z_next == 0.5 and x_prev == -0.5)):
+            return [(x_cur, y_cur, z_cur + 0.5),
+                    (x_cur + 0.25, y_cur + OFFSET * sign, z_cur - 0.25),
+                    (x_cur + 0.25, y_cur - OFFSET * sign, z_cur - 0.25),
+                    (x_cur - 0.5, y_cur, z_cur),
+                    ]
+    else: # z-normal
+        if ((x_prev == -0.5 and x_next == 0.5) or
+            (x_next == -0.5 and x_prev == 0.5)):
+            return [(x_cur - 0.5, y_cur, z_cur),
+                    (x_cur, y_cur, z_cur + OFFSET * sign),
+                    (x_cur + 0.5, y_cur, z_cur),
+                    ]
+        elif ((y_prev == -0.5 and y_next == 0.5) or
+              (y_next == -0.5 and y_prev == 0.5)):
+            return [(x_cur, y_cur - 0.5, z_cur),
+                    (x_cur, y_cur, z_cur - OFFSET * sign),
+                    (x_cur, y_cur + 0.5, z_cur),
+                    ]
+        elif ((x_prev == 0.5 and y_next == 0.5) or
+              (x_next == 0.5 and y_prev == 0.5)):
+            return [(x_cur + 0.5, y_cur, z_cur),
+                    (x_cur - 0.25, y_cur - 0.25, z_cur + OFFSET * sign),
+                    (x_cur - 0.25, y_cur - 0.25, z_cur - OFFSET * sign),
+                    (x_cur, y_cur + 0.5, z_cur),
+                    ]
+        elif ((x_prev == -0.5 and y_next == 0.5) or
+              (x_next == -0.5 and y_prev == 0.5)):
+            return [(x_cur - 0.5, y_cur, z_cur),
+                    (x_cur + 0.25, y_cur - 0.25, z_cur + OFFSET * sign),
+                    (x_cur + 0.25, y_cur - 0.25, z_cur - OFFSET * sign),
+                    (x_cur, y_cur + 0.5, z_cur),
+                    ]
+        elif ((x_prev == -0.5 and y_next == -0.5) or
+              (x_next == -0.5 and y_prev == -0.5)):
+            return [(x_cur - 0.5, y_cur, z_cur),
+                    (x_cur + 0.25, y_cur + 0.25, z_cur + OFFSET * sign),
+                    (x_cur + 0.25, y_cur + 0.25, z_cur - OFFSET * sign),
+                    (x_cur, y_cur - 0.5, z_cur),
+                    ]
+        elif ((x_prev == 0.5 and y_next == -0.5) or
+              (x_next == 0.5 and y_prev == -0.5)):
+            return [(x_cur + 0.5, y_cur, z_cur),
+                    (x_cur - 0.25, y_cur + 0.25, z_cur + OFFSET * sign),
+                    (x_cur - 0.25, y_cur + 0.25, z_cur - OFFSET * sign),
+                    (x_cur, y_cur - 0.5, z_cur),
+                    ]
+
+    return [(x_cur + x_prev, y_cur + y_prev, z_cur + z_prev),
+            (x_cur, y_cur, z_cur),
+            (x_cur + x_next, y_cur + y_next, z_cur + z_next),
+            ]
+
 class OuterSurface(object):
 
     def __init__(self, objloader):
@@ -211,11 +354,18 @@ class OuterSurface(object):
         
         print "Solving Eulerian path..."
         eulerian = graph.EulerianPath(self.graph)
-        path = eulerian.solve()
+        path = eulerian.solve(self.surface_faces.keys()[0])
         print "Eulerian path found."
         
         self.knot = Knot()
-        self.knot.addSequence(path)
+        
+        path = [path[-2]] + path + [path[1]]
+        print path
+        
+        for i in xrange(1, len(path), 2):
+            segment = generateSegment(path[i-1], path[i], path[i+1])
+            print segment
+            self.knot.addSequence(segment)
         
 
     """
