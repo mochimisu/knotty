@@ -502,7 +502,6 @@ class ObjLoader(object):
                 winding_dir = array([0,0,1])
                 winding_ray = Ray(center, winding_dir, 0.01)
                 intersections = []
-                #for prim in self.faces:
                 for prim in self.aabb.relevantPrimitives(winding_ray):
                     intersection = prim.intersect(winding_ray)
                     if intersection < float("inf"):
@@ -543,10 +542,8 @@ class ObjLoader(object):
                     self.voxelized[i][j][k] = new_vox
                     print ("\rvoxelization: "+
                         str(i*voxel_span[1]+j)+"/"+
-                        str(total_iterations)),#+
-                        #", current winding number: "+
-                        #str(winding_number)),
-                sys.stdout.flush()
+                        str(total_iterations)),
+                    sys.stdout.flush()
         print ("\rVoxelization: "+
                 str(total_iterations)+"/"+
                 str(total_iterations)+

@@ -8,6 +8,19 @@ CS285 Project - Brandon Wang, Andrew Lee
 * NumPy:
 `easy_install numpy`
 
+## How to use
+`python knotty.py your_file.obj`
+### Typically used options
+* Specifications:
+  `python knotty.py your file.obj -r [RESOLUTION] -c [CS_SCALE] -z [MAX_DIM]
+  * RESOLUTION: Maximum voxel dimension
+  * CS_SCALE: Cross section scale/radius
+  * MAX_DIM: Maximum dimension size for STL/OBJ output
+
+* Non-well-behaved OBJ's:
+  `python knotty.py your_file.obj -b`
+  Use `-b` for a slower, more accurate voxelization
+
 ## Current Status
 ###Done
 * Initial OpenGL Code:
@@ -26,13 +39,13 @@ CS285 Project - Brandon Wang, Andrew Lee
 * Patterning:
   * Up and down control points specified
   * Control points to spline
+  * Eulerian path construction (Single thread)
 
 * Polygon:
   * Spline to polygon
-	* Watertight polygon
-	* Polygon to STL
+  * Watertight polygon
+  * Polygon to STL
   * Polygon to OBJ
 
 ###Not Done
-* Eulerian path construction (Single thread)
 * Extensions to non-axis-aligned shapes (Triangles, quads)

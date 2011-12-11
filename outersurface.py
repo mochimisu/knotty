@@ -67,7 +67,7 @@ def generateSegment(prev, cur, next):
     x_next -= x_cur
     y_next -= y_cur
     z_next -= z_cur
-    
+
     sign = 1 - 2 * (abs(x_cur + y_cur + z_cur - 0.5) % 2)
     if abs(x_cur) % 1.0 == 0.5: # x-normal
         if ((y_prev == -0.5 and y_next == 0.5) or
@@ -351,20 +351,20 @@ class OuterSurface(object):
         """
         Find Eulerian path
         """
-        
+
         print "Solving Eulerian path..."
         eulerian = graph.EulerianPath(self.graph)
         path = eulerian.solve(self.surface_faces.keys()[0])
         print "Eulerian path found."
-        
+
         self.knot = Knot()
-        
+
         path = [path[-2]] + path + [path[1]]
-        
+
         for i in xrange(1, len(path), 2):
             segment = generateSegment(path[i-1], path[i], path[i+1])
             self.knot.addSequence(segment)
-        
+
 
     """
     Right now, this is done through pickle.
@@ -552,7 +552,7 @@ class OuterSurface(object):
             cur_loop_num += 1
         print ("\rSpline Generation: "+loop_total_num+"/"+
                 loop_total_num+"...complete")
-    
+
     def exportScale(self):
         dimensions = [len(self.voxels),
                       len(self.voxels[0]),
@@ -615,7 +615,7 @@ class OuterSurface(object):
                                 vertices = (cur_v[0], cur_v[1], cur_v[2])
                             else:
                                 vertices = (cur_v[2], cur_v[1], cur_v[0])
-                               
+
                             vertices = map(lambda x: x*scale, vertices)
 
                             f.write("outer loop\n")
@@ -797,6 +797,7 @@ class OuterSurface(object):
             self.knots_spline_polyline_list = uniqueGlListId()
 
             glNewList(self.knots_spline_polyline_list, GL_COMPILE)
+            glDisable(GL_LIGHTING)
             glPushMatrix()
             glMultMatrixd(self.obj_loader.voxelTransformation())
 
@@ -817,6 +818,7 @@ class OuterSurface(object):
                     num_splines+"...complete")
 
             glPopMatrix()
+            glEnable(GL_LIGHTING)
             glEndList()
 
         glCallList(self.knots_spline_polyline_list)
@@ -828,6 +830,7 @@ class OuterSurface(object):
             self.knots_spline_control_list = uniqueGlListId()
 
             glNewList(self.knots_spline_control_list, GL_COMPILE)
+            glDisable(GL_LIGHTING)
             glPushMatrix()
             glMultMatrixd(self.obj_loader.voxelTransformation())
 
@@ -848,6 +851,7 @@ class OuterSurface(object):
                     num_splines+"...complete")
 
             glPopMatrix()
+            glEnable(GL_LIGHTING)
             glEndList()
 
         glCallList(self.knots_spline_control_list)
