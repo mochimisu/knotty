@@ -552,9 +552,24 @@ class OuterSurface(object):
             cur_loop_num += 1
         print ("\rSpline Generation: "+loop_total_num+"/"+
                 loop_total_num+"...complete")
+    
+    def exportScale(self):
+        dimensions = [len(self.voxels),
+                      len(self.voxels[0]),
+                      len(self.voxels[0][0])]
+        print ("("+str(dimensions[0])+","
+                  +str(dimensions[1])+","
+                  +str(dimensions[2])+")"),
+        scale = min(map(lambda x: (float)(self.max_dim)/x, dimensions))
+        dimensions_new = map(lambda x: x*scale, dimensions)
+        print ("-->("+str(dimensions_new[0])+","
+                     +str(dimensions_new[1])+","
+                     +str(dimensions_new[2])+")")
+        return scale
 
     def saveStl(self, filename):
         try:
+            scale = self.exportScale()
             with open(filename,"w") as f:
                 f.write("solid knotty\n")
                 cur_triangles = 0
@@ -600,9 +615,11 @@ class OuterSurface(object):
                                 vertices = (cur_v[0], cur_v[1], cur_v[2])
                             else:
                                 vertices = (cur_v[2], cur_v[1], cur_v[0])
+                               
+                            vertices = map(lambda x: x*scale, vertices)
 
                             f.write("outer loop\n")
-                            for v in cur_v:
+                            for v in vertices:
                                 f.write("vertex "+str(v[0])+" "+str(v[1])+" "
                                         +str(v[2])+"\n")
                             f.write("endloop\n")
@@ -616,11 +633,13 @@ class OuterSurface(object):
                 print (str(filename)+" saved! ("+
                         str(total_vertices)+" vertices, "+
                         str(cur_triangles)+" triangles)")
+                sys.stdout.flush()
         except IOError as e:
             print "Could not save STL file: "+str(e)
 
     def saveObj(self, filename):
         try:
+            scale = self.exportScale()
             with open(filename,"w") as f:
                 vertices = {}
                 normals = {}
@@ -674,6 +693,8 @@ class OuterSurface(object):
                                 cur_vertices_ordered = (cur_vertices[2],
                                                         cur_vertices[1],
                                                         cur_vertices[0])
+                            cur_vertices_ordered = map(lambda x: x*scale,
+                                                       cur_vertices_ordered)
 
                             vertices[cur_v] = cur_vertices_ordered[0]
                             vertices[cur_v+1] = cur_vertices_ordered[1]

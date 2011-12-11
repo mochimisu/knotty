@@ -232,6 +232,10 @@ def main():
             nargs="?", type=float, default=0.1,
             help="Cross section scale")
 
+    parser.add_argument("-z", "--max_dim", dest="max_dim",
+            nargs="?", type=float, default=2,
+            help="STL/OBJ output max dimension size")
+
     parser.add_argument("--width", dest="width",
             nargs="?", type=int, default=640,
             help="Viewport width")
@@ -259,6 +263,7 @@ def main():
     print "Cross Section Scale: "+str(args.cs_scale)
     print "Sample Ratio: "+str(args.num_samples)+"x"
     print "Supersampling rate: "+str(args.supersample)+"x"
+    print "Max dimension: "+str(args.max_dim)
     print "===="
 
     viewport.w = args.width
@@ -282,6 +287,7 @@ def main():
     outer_surface = OuterSurface(obj_loader)
     outer_surface.num_samples = args.num_samples
     outer_surface.cs_scale = args.cs_scale
+    outer_surface.max_dim = args.max_dim
 
     loaded_outer_surface = False
     if filename_suffix == "obj":
