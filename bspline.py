@@ -249,8 +249,11 @@ class BSpline(object):
 
     def drawSplineSegment(self, begin, end, res):
         num_s = len(self.vertices)
-        segment_begin = int(begin*num_s/res)
-        segment_end = min(int((end+0.99)*num_s/res), num_s)
+        segment_begin = int(begin*num_s*res)
+        segment_end = min(int(end*num_s*res), num_s)
+
+        print (str(segment_begin)+" -> "+str(segment_end)+" ("+
+               str((float)(segment_begin)/num_s)+"%)")
 
         for i in xrange(segment_begin, segment_end):
             q = self.vertices[i]
