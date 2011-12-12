@@ -35,7 +35,7 @@ class Viewport(object):
 
         self.view_knots_segments = False
         self.cur_frame = 0
-        self.total_frames = 100.0
+        self.total_frames = 600.0
 
 viewport = Viewport()
 #Glut Window #
