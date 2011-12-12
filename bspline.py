@@ -253,7 +253,7 @@ class BSpline(object):
         segment_end = min(int((float)(end)*num_s), num_s)
 
         print (str(segment_begin)+" -> "+str(segment_end)+" ("+
-               str((float)(segment_end)/num_s)+"%)")
+               str((float)(segment_end)/num_s*100)+"%)")
 
         for i in xrange(segment_begin, segment_end):
             q = self.vertices[i]
