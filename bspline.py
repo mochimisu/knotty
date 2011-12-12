@@ -247,6 +247,22 @@ class BSpline(object):
                 glVertex3f(pt[0], pt[1], pt[2])
             glEnd()
 
+    def drawSplineSegment(self, begin, end, res):
+        num_s = len(self.vertices)
+        segment_begin = int(begin*num_s/res)
+        segment_end = min(int((end+0.99)*num_s/res), num_s)
+
+        for i in xrange(segment_begin, segment_end):
+            q = self.vertices[i]
+            glBegin(GL_QUAD_STRIP)
+            for p in q:
+                pt = p.point
+                n = p.normal
+                glNormal3f(n[0], n[1], n[2])
+                glVertex3f(pt[0], pt[1], pt[2])
+            glEnd()
+
+
     def drawSplineTriangle(self):
         """
         testing for quad->triangle for STL export

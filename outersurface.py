@@ -888,6 +888,13 @@ class OuterSurface(object):
 
         glCallList(self.knots_spline_triangle_list)
 
+    def drawKnotsSegment(self, begin, end, res):
+        glPushMatrix()
+        glMultMatrixd(self.obj_loader.voxelTransformation())
+        #because we should only have one
+        self.splines[0].drawSplineSegment(begin, end, res)
+        glPopMatrix()
+
 
 
 

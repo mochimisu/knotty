@@ -12,6 +12,7 @@ from consts import *
 import sys
 import argparse
 import graph
+from PIL import Image
 
 import knots
 
@@ -31,6 +32,10 @@ class Viewport(object):
         self.view_knots_control = False
         self.view_knots_triangle = False
         self.view_wireframe = False
+
+        self.view_knots_segments = False
+        self.cur_frame = 0
+        self.total_frames = 100.0
 
 viewport = Viewport()
 #Glut Window #
@@ -62,6 +67,9 @@ def keyPressed(*args):
         viewport.view_voxels = not viewport.view_voxels
     elif args[0] == '1':
         viewport.view_triangles = not viewport.view_triangles
+    elif args[0] =='s':
+        viewport.view_knots_segments = not viewport.view_knots_segments
+        viewport.cur_frame = 0
 
 def activeMotion(*args):
 
@@ -119,6 +127,8 @@ def initGL(w,h):
 def resizeScene(w,h):
     if h == 0:
         h = 1
+    viewport.w = w
+    viewport.h = h
     glViewport(0,0,w,h)
     glMatrixMode(GL_PROJECTION)
     glLoadIdentity()
@@ -166,8 +176,26 @@ def drawScene():
         outer_surface.drawKnotsControl()
     if viewport.view_knots_triangle:
         outer_surface.drawKnotsTriangle()
+    if viewport.view_knots_segments:
+        percent = (float)(viewport.cur_frame)/viewport.total_frames
+        resolution = viewport.total_frames
+        outer_surface.drawKnotsSegment(0, percent, resolution)
+        viewport.cur_frame += 1
+        saveFrame(viewport.cur_frame)
 
     glutSwapBuffers()
+
+def saveFrame(frame):
+    data1 = glReadPixelsub(0, 0, viewport.w, viewport.h, GL_RGB)
+    data = []
+    for d in data1:
+        data.extend(d)
+    data = map(tuple, data)
+
+    img = Image.new('RGB', (viewport.w, viewport.h))
+    img.putdata(data)
+    img = img.transpose(Image.FLIP_TOP_BOTTOM)
+    img.save('frames/frame%s.png' % str(frame).zfill(5))
 
 def main():
     global viewport
@@ -346,7 +374,7 @@ def main():
     glLightfv(GL_LIGHT0, GL_DIFFUSE, [1,1,1,1])
     glLightfv(GL_LIGHT0, GL_POSITION, [1, 1, 1, 0])
     glEnable(GL_LIGHT0)
-    glEnable(GL_CULL_FACE)
+    #glEnable(GL_CULL_FACE)
 
     glLineWidth(2)
 
