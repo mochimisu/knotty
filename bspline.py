@@ -248,6 +248,7 @@ class BSpline(object):
             glEnd()
 
     def drawSplineSegment(self, begin, end):
+        print end
         num_s = len(self.vertices)
         segment_begin = max(int((float)(begin)*num_s), 0)
         segment_end = min(int((float)(end)*num_s), num_s)
