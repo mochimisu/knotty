@@ -179,8 +179,7 @@ def drawScene():
     if viewport.view_knots_segments:
         percent = (float)(viewport.cur_frame)/viewport.total_frames
         resolution = viewport.total_frames
-        outer_surface.drawKnotsSegment(0, percent, resolution)
-        viewport.cur_frame += 1
+        outer_surface.drawKnotsSegment(0, percent)
         saveFrame(viewport.cur_frame)
 
     glutSwapBuffers()

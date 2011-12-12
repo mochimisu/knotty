@@ -247,10 +247,10 @@ class BSpline(object):
                 glVertex3f(pt[0], pt[1], pt[2])
             glEnd()
 
-    def drawSplineSegment(self, begin, end, res):
+    def drawSplineSegment(self, begin, end):
         num_s = len(self.vertices)
-        segment_begin = int(begin*num_s*res)
-        segment_end = min(int(end*num_s*res), num_s)
+        segment_begin = int(begin*num_s)
+        segment_end = min(int(end*num_s), num_s)
 
         print (str(segment_begin)+" -> "+str(segment_end)+" ("+
                str((float)(segment_begin)/num_s)+"%)")
