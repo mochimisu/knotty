@@ -359,7 +359,7 @@ def main():
     if args.save_stl:
         outer_surface.saveStl(filename_no_suffix+"-knot.stl")
     if args.save_obj:
-        outer_surface.saveObj(filename_no_suffix+"-knot.obj")
+        outer_surface.saveObj(filename_no_suffix+"-knot")
 
     glutDisplayFunc(drawScene)
     glutIdleFunc(drawScene)
